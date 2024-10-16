@@ -24,22 +24,20 @@
 package net.whimxiqal.journey.data;
 
 import java.util.Collection;
+import net.whimxiqal.journey.BoxTargetTunnel;
 import net.whimxiqal.journey.Cell;
+import net.whimxiqal.journey.CellBox;
 import net.whimxiqal.journey.Tunnel;
 
 public interface TunnelDataManager {
 
-  void addTunnel(Cell origin, Cell destination, double cost, TunnelType type);
+  void addTunnel(CellBox entrance, Cell exit, TunnelType type);
 
-  Collection<Tunnel> getTunnelsWithOrigin(Cell origin, TunnelType type);
+  Collection<BoxTargetTunnel> getAllTunnels(TunnelType type);
 
-  Collection<Tunnel> getTunnelsWithDestination(Cell destination, TunnelType type);
+  void removeTunnelsWithOrigin(CellBox entrance, TunnelType type);
 
-  Collection<Tunnel> getAllTunnels(TunnelType type);
-
-  void removeTunnelsWithOrigin(Cell origin, TunnelType type);
-
-  void removeTunnels(Cell origin, Cell destination, TunnelType type);
+  void removeTunnels(CellBox entrance, Cell exit, TunnelType type);
 
   void removeTunnels(TunnelType type);
 

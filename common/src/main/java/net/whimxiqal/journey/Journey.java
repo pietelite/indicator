@@ -102,7 +102,6 @@ public final class Journey {
   }
 
   public boolean init() {
-    JourneyApiSupplier.set(new JourneyApiImpl());
 
     // load settings first
     try {

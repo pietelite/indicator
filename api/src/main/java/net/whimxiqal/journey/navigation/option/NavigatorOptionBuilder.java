@@ -33,22 +33,7 @@ import net.whimxiqal.journey.Builder;
  *
  * @param <T> the type of stored value
  */
-public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
-
-  private final String optionId;
-  private final Class<T> clazz;
-  private Supplier<T> defaultValueSupplier;
-  private NavigatorOptionParser<T> parser;
-  private Supplier<List<String>> valueSuggestions;
-  private NavigatorOptionValidator<T> validator;
-  private String permission;
-  private Function<T, String> valuePermissionFunction;
-
-  NavigatorOptionBuilder(String optionId, Class<T> clazz) {
-    this.optionId = optionId;
-    this.clazz = clazz;
-  }
-
+public interface NavigatorOptionBuilder<T> extends Builder<NavigatorOption<T>> {
   /**
    * Set the parser, thereby enabling parsing of the option. Once the parser is set,
    * players in game may specify the option in commands and other API users may provide
@@ -57,10 +42,7 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param parser the parser
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> parser(NavigatorOptionParser<T> parser) {
-    this.parser = parser;
-    return this;
-  }
+  NavigatorOptionBuilder<T> parser(NavigatorOptionParser<T> parser);
 
   /**
    * Set a supplier for the default value.
@@ -68,10 +50,7 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param defaultValueSupplier the supplier
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> defaultValue(Supplier<T> defaultValueSupplier) {
-    this.defaultValueSupplier = defaultValueSupplier;
-    return this;
-  }
+  NavigatorOptionBuilder<T> defaultValue(Supplier<T> defaultValueSupplier);
 
   /**
    * Set a default value.
@@ -79,10 +58,7 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param defaultValue the value
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> defaultValue(T defaultValue) {
-    this.defaultValueSupplier = () -> defaultValue;
-    return this;
-  }
+  NavigatorOptionBuilder<T> defaultValue(T defaultValue);
 
   /**
    * Set a supplier for a list of suggestions for this value.
@@ -90,10 +66,7 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param valueSuggestions the suggestions
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> valueSuggestions(Supplier<List<String>> valueSuggestions) {
-    this.valueSuggestions = valueSuggestions;
-    return this;
-  }
+  NavigatorOptionBuilder<T> valueSuggestions(Supplier<List<String>> valueSuggestions);
 
   /**
    * Set a {@link NavigatorOptionValidator} for the option. The validator should return an error string
@@ -103,10 +76,7 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param validator the validator
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> validator(NavigatorOptionValidator<T> validator) {
-    this.validator = validator;
-    return this;
-  }
+  NavigatorOptionBuilder<T> validator(NavigatorOptionValidator<T> validator);
 
   /**
    * Set a permission for this option. Only players with this permission may use this option.
@@ -114,10 +84,7 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param permission the permission
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> permission(String permission) {
-    this.permission = permission;
-    return this;
-  }
+  NavigatorOptionBuilder<T> permission(String permission);
 
   /**
    * Set a function for retrieving a permission based on a given value.
@@ -126,16 +93,5 @@ public class NavigatorOptionBuilder<T> implements Builder<NavigatorOption<T>> {
    * @param valuePermissionFunction the permission function
    * @return the builder, for chaining
    */
-  public NavigatorOptionBuilder<T> valuePermission(Function<T, String> valuePermissionFunction) {
-    this.valuePermissionFunction = valuePermissionFunction;
-    return this;
-  }
-
-  @Override
-  public NavigatorOption<T> build() {
-    return new NavigatorOptionImpl<>(optionId, clazz,
-        defaultValueSupplier, parser,
-        valueSuggestions, validator,
-        permission, valuePermissionFunction);
-  }
+  NavigatorOptionBuilder<T> valuePermission(Function<T, String> valuePermissionFunction);
 }

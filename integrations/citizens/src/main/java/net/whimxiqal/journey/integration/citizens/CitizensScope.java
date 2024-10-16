@@ -34,7 +34,6 @@ import net.whimxiqal.journey.JourneyPlayer;
 import net.whimxiqal.journey.Scope;
 import net.whimxiqal.journey.VirtualMap;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
 
 public class CitizensScope implements Scope {
 
@@ -47,13 +46,12 @@ public class CitizensScope implements Scope {
 
   @Override
   public VirtualMap<Destination> destinations(JourneyPlayer player) {
-    JourneyBukkitApi bukkitApi = JourneyBukkitApiProvider.get();
     Map<String, Destination> destinations = new HashMap<>();
     for (NPC npc : CitizensAPI.getNPCRegistry()) {
       if (!npc.isSpawned()) {
         continue;
       }
-      destinations.put(String.valueOf(npc.getId()), Destination.builder(bukkitApi.toCell(npc.getEntity().getLocation()))
+      destinations.put(String.valueOf(npc.getId()), Destination.cellBuilder(JourneyBukkitApi.get().toCell(npc.getEntity().getLocation()))
           .name(Component.text(npc.getFullName()))
           .build());
     }

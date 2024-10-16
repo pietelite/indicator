@@ -189,6 +189,7 @@ public class SchematicSearchTests {
       DestinationPathTrial pathTrial = new DestinationPathTrial(session,
           params.start(),
           params.end(),
+          params.end()::equals,
           params.modes(),
           0, null, ResultState.IDLE, false, false);
 
@@ -244,6 +245,7 @@ public class SchematicSearchTests {
     DestinationPathTrial pathTrial = new DestinationPathTrial(session,
         params.start(),
         params.end(),
+        params.end()::equals,
         List.of(new WalkMode(), new JumpMode()),
         0, null, ResultState.IDLE, false, false);
 

@@ -23,42 +23,42 @@
 
 package net.whimxiqal.journey;
 
-import java.util.List;
-import java.util.Optional;
-import net.kyori.adventure.text.Component;
+/**
+ * A builder for a {@link Tunnel}.
+ */
+public class TunnelBuilderImpl implements TunnelBuilder {
 
-class DestinationImpl implements Destination {
+  private final Target entrance;
+  private final Cell exit;
+  private int cost = 0;
+  private Runnable prompt;
+  private String permission;
 
-  private final Component name;
-  private final List<Component> description;
-  private final Cell location;
-  private final String permission;
+  TunnelBuilderImpl(Target entrance, Cell exit) {
+    this.entrance = entrance;
+    this.exit = exit;
+  }
 
-  DestinationImpl(Component name, List<Component> description, Cell location, String permission) {
-    this.name = name;
-    this.description = description;
-    this.location = location;
+  @Override
+  public TunnelBuilder cost(int cost) {
+    this.cost = cost;
+    return this;
+  }
+
+  @Override
+  public TunnelBuilder prompt(Runnable prompt) {
+    this.prompt = prompt;
+    return this;
+  }
+
+  @Override
+  public TunnelBuilder permission(String permission) {
     this.permission = permission;
+    return this;
   }
 
   @Override
-  public Component name() {
-    return name;
+  public Tunnel build() {
+    return new TunnelImpl(entrance, exit, cost, prompt, permission);
   }
-
-  @Override
-  public List<Component> description() {
-    return description;
-  }
-
-  @Override
-  public Cell location() {
-    return location;
-  }
-
-  @Override
-  public Optional<String> permission() {
-    return Optional.ofNullable(permission);
-  }
-
 }

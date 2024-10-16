@@ -77,8 +77,8 @@ public class EverythingSearch extends SearchSession {
     final Map<Integer, List<Tunnel>> tunnelsByDestinationDomain = new HashMap<>();
 
     for (Tunnel tunnel : tunnels()) {
-      allDomains.add(tunnel.origin().domain());
-      allDomains.add(tunnel.destination().domain());
+      allDomains.add(tunnel.entrance().domain());
+      allDomains.add(tunnel.exit().domain());
     }
 
     // Prepare tunnel maps
@@ -89,8 +89,8 @@ public class EverythingSearch extends SearchSession {
 
     // Fill tunnel maps
     for (Tunnel tunnel : tunnels()) {
-      tunnelsByOriginDomain.get(tunnel.origin().domain()).add(tunnel);
-      tunnelsByDestinationDomain.get(tunnel.destination().domain()).add(tunnel);
+      tunnelsByOriginDomain.get(tunnel.entrance().domain()).add(tunnel);
+      tunnelsByDestinationDomain.get(tunnel.exit().domain()).add(tunnel);
     }
 
     // Collect path trials
@@ -100,9 +100,9 @@ public class EverythingSearch extends SearchSession {
         for (Tunnel pathTrialDestinationTunnel : tunnelsByOriginDomain.get(domain)) {
           if (!Journey.get().proxy().dataManager()
               .pathRecordManager()
-              .containsRecord(pathTrialOriginTunnel.destination(), pathTrialDestinationTunnel.origin(), modeTypes)) {
-            DestinationPathTrial pathTrial = DestinationPathTrial.approximate(this, pathTrialOriginTunnel.destination(), pathTrialDestinationTunnel.origin(),
-                modes(), true);
+              .containsRecord(pathTrialOriginTunnel.exit(), pathTrialDestinationTunnel.entrance(), modeTypes)) {
+            DestinationPathTrial pathTrial = DestinationPathTrial.approximate(this, pathTrialOriginTunnel.exit(), pathTrialDestinationTunnel.entrance(),
+                modes(), pathTrialDestinationTunnel::isSatisfiedBy, true);
             pathTrials.add(pathTrial);
             totalLengthToCalculate.set(totalLengthToCalculate.get() + pathTrial.getLength());
           }

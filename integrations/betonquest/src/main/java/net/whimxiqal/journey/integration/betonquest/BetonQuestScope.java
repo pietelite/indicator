@@ -33,7 +33,6 @@ import net.whimxiqal.journey.Scope;
 import net.whimxiqal.journey.ScopeBuilder;
 import net.whimxiqal.journey.VirtualMap;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.bukkit.config.custom.multi.MultiConfiguration;
 import org.betonquest.betonquest.api.config.quest.QuestPackage;
@@ -65,7 +64,6 @@ public class BetonQuestScope implements Scope {
             return VirtualMap.empty();
           }
 
-          JourneyBukkitApi journeyBukkit = JourneyBukkitApiProvider.get();
           Map<String, Scope> packageScopes = new HashMap<>();
           OnlineProfile profile = PlayerConverter.getID(bukkitPlayer);
           PlayerData playerData = BetonQuest.getInstance().getPlayerData(profile);
@@ -130,7 +128,7 @@ public class BetonQuestScope implements Scope {
                 JourneyBetonQuest.logger.warning("Could not parse location coordinates in a compass pointer in " + packName + " package: " + key + ": " + e.getMessage());
                 continue;
               }
-              packageScope.destinations(VirtualMap.ofSingleton(key, Destination.builder(new Cell(locX, locY, locZ, journeyBukkit.toDomain(world)))
+              packageScope.destinations(VirtualMap.ofSingleton(key, Destination.cellBuilder(new Cell(locX, locY, locZ, JourneyBukkitApi.get().toDomain(world)))
                   .name(Component.text(name))
                   .build()));
             }

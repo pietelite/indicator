@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 import net.whimxiqal.journey.Cell;
 import net.whimxiqal.journey.Journey;
 import net.whimxiqal.journey.bukkit.JourneyBukkit;
+import net.whimxiqal.journey.navigation.PlatformProxy;
 import net.whimxiqal.journey.search.flag.FlagSet;
 import net.whimxiqal.journey.search.flag.Flags;
 import org.bukkit.Bukkit;
@@ -155,8 +156,8 @@ public final class BukkitUtil {
         && !isVerticallyPassable(block);
   }
 
-  public static int getDomain(World world) {
-    return Journey.get().domainManager().domainIndex(getWorldId(world));
+  public static PlatformProxy.DomainInfo getDomain(World world) {
+    return new PlatformProxy.DomainInfo(world.getName(), Journey.get().domainManager().domainIndex(getWorldId(world)));
   }
 
   public static UUID getWorldId(World world) {
@@ -164,7 +165,7 @@ public final class BukkitUtil {
   }
 
   public static Cell toCell(Location location) {
-    return new Cell(location.getBlockX(), location.getBlockY(), location.getBlockZ(), getDomain(Objects.requireNonNull(location.getWorld())));
+    return new Cell(location.getBlockX(), location.getBlockY(), location.getBlockZ(), getDomain(Objects.requireNonNull(location.getWorld())).id());
   }
 
   public static World getWorld(Cell cell) {

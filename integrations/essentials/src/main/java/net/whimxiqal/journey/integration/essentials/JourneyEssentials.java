@@ -26,7 +26,6 @@ package net.whimxiqal.journey.integration.essentials;
 import com.earth2me.essentials.IEssentials;
 import java.util.logging.Logger;
 import net.whimxiqal.journey.JourneyApi;
-import net.whimxiqal.journey.JourneyApiProvider;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -42,9 +41,8 @@ public final class JourneyEssentials extends JavaPlugin {
   @Override
   public void onEnable() {
     JourneyEssentials.logger = getLogger();
-    JourneyApi api = JourneyApiProvider.get();
-    api.registerScope(getName(), "essentials", new EssentialsScope());
-    api.registerTunnels(getName(), new EssentialsTunnelSupplier());
+    JourneyApi.get().registerScope(getName(), "essentials", new EssentialsScope());
+    JourneyApi.get().registerTunnels(getName(), new EssentialsTunnelSupplier());
   }
 
   public static IEssentials essentials() {

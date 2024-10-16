@@ -5,6 +5,10 @@ jar {
     archiveBaseName.set(journeyPaperPluginExtension.pluginName.get() as String)
 }
 
+//sourceSets {
+//    main.java.srcDirs += "${project.rootDir}/command/build/generated-src/antlr/main"
+//}
+
 processResources {
     outputs.upToDateWhen {
         false

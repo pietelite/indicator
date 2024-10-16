@@ -25,50 +25,52 @@ package net.whimxiqal.journey.search;
 
 import java.util.UUID;
 import net.whimxiqal.journey.Cell;
-import net.whimxiqal.journey.Journey;
 import net.whimxiqal.journey.JourneyAgent;
 import net.whimxiqal.journey.JourneyPlayer;
+import net.whimxiqal.journey.Target;
+import net.whimxiqal.journey.Targetter;
 import net.whimxiqal.journey.Tunnel;
 
 public class DestinationGoalSearchSession extends GraphGoalSearchSession<DestinationSearchGraph> {
 
-  protected final Cell destination;
-  private final boolean persistentDestination;
+  private final Targetter targetter;
+  private final boolean stationaryDestination;
 
   public DestinationGoalSearchSession(UUID callerId, Caller callerType, JourneyAgent agent,
-                                      Cell origin, Cell destination,
-                                      boolean persistentOrigin, boolean persistentDestination) {
-    super(callerId, callerType, agent, origin, persistentOrigin);
-    this.destination = destination;
-    this.persistentDestination = persistentDestination;
+                                      Cell origin, Targetter targetter,
+                                      boolean stationaryOrigin, boolean stationaryDestination) {
+    super(callerId, callerType, agent, origin, stationaryOrigin);
+    this.targetter = targetter;
+    this.stationaryDestination = stationaryDestination;
   }
 
-  public DestinationGoalSearchSession(JourneyPlayer player, Cell origin, Cell destination, boolean persistentOrigin, boolean persistentDestination) {
-    this(player.uuid(), Caller.PLAYER, player, origin, destination, persistentOrigin, persistentDestination);
+  public DestinationGoalSearchSession(JourneyPlayer player, Cell origin,
+                                      Targetter targetter,
+                                      boolean stationaryOrigin, boolean stationaryDestination) {
+    this(player.uuid(), Caller.PLAYER, player, origin, targetter, stationaryOrigin, stationaryDestination);
   }
 
   @Override
   DestinationSearchGraph createSearchGraph() {
-    return new DestinationSearchGraph(this, origin, destination);
+    return new DestinationSearchGraph(this, origin, targetter.targetSnapshot());
   }
 
   @Override
   public void initialize() {
     super.initialize();
-    Journey.get().proxy().platform().prepareDestinationSearchSession(this, agent, flags, destination);
   }
 
   @Override
-  protected void initSearchExtra() {
-    if (origin.domain() == destination.domain()) {
-      stateInfo.searchGraph.addPathTrialOriginToDestination(modes(), persistentOrigin && persistentDestination);
+  protected void initSearchExtra(Target target) {
+    if (origin.domain() == target.domain()) {
+      stateInfo.searchGraph.addPathTrialOriginToDestination(modes(), persistentOrigin && stationaryDestination);
     }
 
     for (Integer domain : stateInfo.allDomains) {
       // Path trials from tunnel -> destination
       for (Tunnel pathTrialOriginTunnel : stateInfo.tunnelsByDestinationDomain.get(domain)) {
-        if (domain.equals(destination.domain())) {
-          stateInfo.searchGraph.addPathTrialTunnelToDestination(pathTrialOriginTunnel, modes(), persistentDestination);
+        if (domain.equals(target.domain())) {
+          stateInfo.searchGraph.addPathTrialTunnelToDestination(pathTrialOriginTunnel, modes(), stationaryDestination);
         }
       }
     }
@@ -78,7 +80,7 @@ public class DestinationGoalSearchSession extends GraphGoalSearchSession<Destina
   public String toString() {
     return "[Destination Graph Goal Search] {session: " + uuid
         + ", origin: " + origin
-        + ", destination: " + destination
+        + ", destination: " + targetter
         + ", caller: (" + callerType + ") " + callerId
         + ", state: " + state.get()
         + '}';

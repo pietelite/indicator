@@ -1,7 +1,7 @@
 name: JourneyBetonQuest
 version: '${version}'
 main: net.whimxiqal.journey.integration.betonquest.JourneyBetonQuest
-api-version: 1.17
+api-version: 1.21
 depend: [ Journey, BetonQuest ]
 authors: [ whimxiqal ]
 description: Integrates Journey with BetonQuest

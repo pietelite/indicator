@@ -40,7 +40,7 @@ public interface NavigatorFactory extends NavigatorSupplier, Permissible {
    * @return the builder
    */
   static NavigatorFactoryBuilder builder(String plugin, String navigatorType) {
-    return new NavigatorFactoryBuilder(plugin, navigatorType);
+    return NavigatorFactoryBuilderFactory.INSTANCE.builder(plugin, navigatorType);
   }
 
   /**

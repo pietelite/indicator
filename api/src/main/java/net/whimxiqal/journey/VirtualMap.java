@@ -46,7 +46,7 @@ public interface VirtualMap<T> {
    * @return the map supplier
    */
   static <X> VirtualMap<X> of(Supplier<Map<String, ? extends X>> supplier, int size) {
-    return new VirtualMapImpl<>(supplier, size);
+    return VirtualMapFactory.INSTANCE.of(supplier, size);
   }
 
   /**
@@ -57,7 +57,7 @@ public interface VirtualMap<T> {
    * @return the map supplier
    */
   static <X> VirtualMap<X> of(Map<String, ? extends X> map) {
-    return new VirtualMapImpl<>(map);
+    return VirtualMapFactory.INSTANCE.of(map);
   }
 
   /**
@@ -69,7 +69,7 @@ public interface VirtualMap<T> {
    * @return the map supplier
    */
   static <X> VirtualMap<X> ofSingleton(String id, X item) {
-    return new VirtualMapImpl<>(Collections.singletonMap(id, item));
+    return VirtualMapFactory.INSTANCE.ofSingleton(id, item);
   }
 
   /**
@@ -79,7 +79,7 @@ public interface VirtualMap<T> {
    * @return the map supplier
    */
   static <X> VirtualMap<X> empty() {
-    return new VirtualMapImpl<>(Collections.emptyMap());
+    return VirtualMapFactory.INSTANCE.empty();
   }
 
   /**

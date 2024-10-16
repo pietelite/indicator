@@ -23,32 +23,19 @@
 
 package net.whimxiqal.journey;
 
-import java.util.NoSuchElementException;
+import java.util.ServiceLoader;
+import org.jetbrains.annotations.ApiStatus;
 
-/**
- * The static provider of a {@link JourneyApi}.
- */
-public final class JourneyApiProvider {
+@ApiStatus.Internal
+interface TunnelBuilderFactory {
 
-  private static JourneyApi instance;
+  TunnelBuilderFactory INSTANCE = ServiceLoader.load(
+          TunnelBuilderFactory.class,
+          TunnelBuilderFactory.class.getClassLoader())
+      .findFirst().orElseThrow();
 
-  private JourneyApiProvider() {
-  }
+  TunnelBuilder builder(Cell origin, Cell destination);
 
-  /**
-   * Getter for the {@link JourneyApi}.
-   *
-   * @return the Journey API
-   */
-  public static JourneyApi get() {
-    if (instance == null) {
-      throw new NoSuchElementException("No JourneyApi has been set yet.");
-    }
-    return instance;
-  }
-
-  static void provide(JourneyApi instance) {
-    JourneyApiProvider.instance = instance;
-  }
+  TunnelBuilder boxEntranceBuilder(Cell origin1, Cell origin2, Cell destination);
 
 }

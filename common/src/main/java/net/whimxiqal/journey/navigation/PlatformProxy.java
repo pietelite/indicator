@@ -91,8 +91,6 @@ public interface PlatformProxy extends BlockProvider {
 
   Optional<Vector> entityVector(UUID entityUuid);
 
-  void prepareDestinationSearchSession(SearchSession searchSession, JourneyAgent agent, FlagSet flags, Cell destination);
-
   void sendAnimationBlock(UUID player, Cell location);
 
   void resetAnimationBlocks(UUID player, Collection<Cell> locations);
@@ -103,7 +101,9 @@ public interface PlatformProxy extends BlockProvider {
 
   Consumer<CustomChart> bStatsChartConsumer();
 
-  Map<String, Map<String, Integer>> domainResourceKeys();
+  record DomainInfo(String name, int id) {}
+
+  Map<String, Map<String, DomainInfo>> domainResourceKeys();
 
   List<String> particleTypes();
 

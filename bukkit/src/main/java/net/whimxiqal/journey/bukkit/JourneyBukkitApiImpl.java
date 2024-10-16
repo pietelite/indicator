@@ -31,7 +31,7 @@ import org.bukkit.World;
 public class JourneyBukkitApiImpl implements JourneyBukkitApi {
   @Override
   public int toDomain(World world) {
-    return BukkitUtil.getDomain(world);
+    return BukkitUtil.getDomain(world).id();
   }
 
   @Override

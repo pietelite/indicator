@@ -23,63 +23,54 @@
 
 package net.whimxiqal.journey.navigation;
 
+import net.whimxiqal.journey.BoxTargetTunnel;
 import net.whimxiqal.journey.Cell;
-import net.whimxiqal.journey.Tunnel;
+import net.whimxiqal.journey.CellBox;
 import net.whimxiqal.journey.Journey;
-import net.whimxiqal.journey.tools.Verifiable;
+import net.whimxiqal.journey.Target;
+import net.whimxiqal.journey.BoxTarget;
+import net.whimxiqal.journey.Tunnel;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A tunnel that represents a Minecraft Nether Portal.
  */
-public final class NetherTunnel implements Tunnel, Verifiable {
+public final class NetherTunnel extends BoxTargetTunnel {
 
   public static final int COST = 8;
-  private final Cell origin;
-  private final Cell destination;
+  private final CellBox entrance;
+  private final Cell exit;
 
   /**
    * General constructor.
    *
-   * @param origin      the origin of the portal
-   * @param destination the destination of the portal
+   * @param entrance the origin of the portal
+   * @param exit     the destination of the portal
    */
-  public NetherTunnel(@NotNull final Cell origin, @NotNull final Cell destination) {
-    this.origin = origin;
-    this.destination = destination;
+  public NetherTunnel(@NotNull final CellBox entrance, @NotNull final Cell exit) {
+    super(entrance, exit, COST, () -> {}, null);
+    this.entrance = entrance;
+    this.exit = exit;
   }
 
-  @Override
   public boolean verify() {
-    return Journey.get().netherManager().locateAll(origin, 1).size() > 0
-        && Journey.get().netherManager().locateAll(destination, 1).size() > 0;
+    for (int x = entrance.min().blockX(); x <= entrance.max().blockX(); x++) {
+      for (int y = entrance.min().blockY(); y <= entrance.max().blockY(); y++) {
+        for (int z = entrance.min().blockZ(); z <= entrance.max().blockZ(); z++) {
+          if (!Journey.get().proxy().platform().toBlock(new Cell(x, y, z, entrance.domain())).isNetherPortal()) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 
   @Override
   public String toString() {
     return "NetherTunnel: "
-        + origin + " -> "
-        + destination;
+        + entrance + " -> "
+        + exit;
   }
 
-  @Override
-  public Cell origin() {
-    return origin;
-  }
-
-  @Override
-  public Cell destination() {
-    return destination;
-  }
-
-  @Override
-  public int cost() {
-    return COST;
-  }
-
-  @Override
-  public boolean testCompletion(Cell location) {
-    // TODO This should be "completed with" any of the portal blocks in this nether portal
-    return Tunnel.super.testCompletion(location);
-  }
 }

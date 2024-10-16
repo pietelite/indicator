@@ -140,11 +140,6 @@ public class BukkitPlatformProxy implements PlatformProxy {
   }
 
   @Override
-  public void prepareDestinationSearchSession(SearchSession searchSession, JourneyAgent agent, FlagSet flags, Cell destination) {
-    // no op
-  }
-
-  @Override
   public void sendAnimationBlock(UUID playerUuid, Cell location) {
     Player player = Bukkit.getPlayer(playerUuid);
     if (player == null) {
@@ -192,9 +187,10 @@ public class BukkitPlatformProxy implements PlatformProxy {
   }
 
   @Override
-  public Map<String, Map<String, Integer>> domainResourceKeys() {
-    Map<String, Map<String, Integer>> domains = new HashMap<>();
+  public Map<String, Map<String, DomainInfo>> domainResourceKeys() {
+    Map<String, Map<String, DomainInfo>> domains = new HashMap<>();
     for (World world : Bukkit.getWorlds()) {
+      world.getName();
       NamespacedKey key = world.getKey();
       domains.computeIfAbsent(key.namespace(), k -> new HashMap<>()).put(key.getKey(), BukkitUtil.getDomain(world));
     }

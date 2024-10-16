@@ -43,7 +43,7 @@ public interface NavigatorOption<T> extends NavigatorOptionValidator<T> {
    * @return the builder
    */
   static <X> NavigatorOptionBuilder<X> builder(String optionId, Class<X> clazz) {
-    return new NavigatorOptionBuilder<>(optionId, clazz);
+    return NavigatorOptionBuilderFactory.INSTANCE.builder(optionId, clazz);
   }
 
   /**
@@ -53,7 +53,7 @@ public interface NavigatorOption<T> extends NavigatorOptionValidator<T> {
    * @return the builder
    */
   static NavigatorOptionBuilder<String> stringValueBuilder(String optionId) {
-    return new NavigatorOptionBuilder<>(optionId, String.class).parser(s -> s);
+    return NavigatorOptionBuilderFactory.INSTANCE.stringValueBuilder(optionId);
   }
 
   /**
@@ -66,22 +66,7 @@ public interface NavigatorOption<T> extends NavigatorOptionValidator<T> {
    * @return the builder
    */
   static NavigatorOptionBuilder<Integer> integerValueBuilder(String optionId, int min, int max) {
-    return new NavigatorOptionBuilder<>(optionId, Integer.class)
-        .parser(val -> {
-          try {
-            return Integer.parseInt(val);
-          } catch (NumberFormatException e) {
-            throw new ParseNavigatorOptionException(e.getMessage(), 0);
-          }
-        })
-        .validator(val -> {
-          if (val < min) {
-            return "Value must be greater than " + min;
-          } else if (val > max) {
-            return "Value must be less than " + max;
-          }
-          return null;
-        });
+    return NavigatorOptionBuilderFactory.INSTANCE.integerValueBuilder(optionId, min, max);
   }
 
   /**
@@ -94,16 +79,7 @@ public interface NavigatorOption<T> extends NavigatorOptionValidator<T> {
    * @return the builder
    */
   static NavigatorOptionBuilder<Double> doubleValueBuilder(String optionId, double min, double max) {
-    return new NavigatorOptionBuilder<>(optionId, Double.class)
-        .parser(Double::parseDouble)
-        .validator(val -> {
-          if (val < min) {
-            return "Value must be greater than " + min;
-          } else if (val > max) {
-            return "Value must be less than " + max;
-          }
-          return null;
-        });
+    return NavigatorOptionBuilderFactory.INSTANCE.doubleValueBuilder(optionId, min, max);
   }
 
   /**

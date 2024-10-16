@@ -33,7 +33,7 @@ import net.whimxiqal.journey.Scope;
 import net.whimxiqal.journey.ScopeBuilder;
 import net.whimxiqal.journey.VirtualMap;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import rocks.gravili.notquests.paper.NotQuests;
@@ -51,7 +51,6 @@ public class NotQuestsScope implements Scope {
   @Override
   public VirtualMap<Scope> subScopes(JourneyPlayer player) {
     NotQuests notQuests = JourneyNotQuests.notQuests();
-    JourneyBukkitApi journeyBukkit = JourneyBukkitApiProvider.get();
     Map<String, Scope> subScopes = new HashMap<>();
 
     QuestPlayer qPlayer = notQuests.getQuestPlayerManager().getActiveQuestPlayer(player.uuid());
@@ -71,7 +70,7 @@ public class NotQuestsScope implements Scope {
         Map<String, Destination> objectiveDestinations = new HashMap<>();
         Location objectiveLocation = objective.getObjective().getLocation();
         if (objectiveLocation != null) {
-          DestinationBuilder objectiveDestination = Destination.builder(journeyBukkit.toCell(objectiveLocation));
+          DestinationBuilder objectiveDestination = Destination.cellBuilder(JourneyBukkitApi.get().toCell(objectiveLocation));
           objectiveDestination.name(Component.text("Location"));
           objectiveDestinations.put("location", objectiveDestination.build());
         }
@@ -79,7 +78,13 @@ public class NotQuestsScope implements Scope {
         if (npc != null) {
           Entity entity = npc.getEntity();
           if (entity != null) {
-            DestinationBuilder entityDestination = Destination.builder(journeyBukkit.toCell(entity.getLocation()));
+            DestinationBuilder entityDestination = Destination.movingBuilder(() -> {
+              Entity _entity = Bukkit.getEntity(entity.getUniqueId());
+              if (_entity == null) {
+                return null;
+              }
+              return JourneyBukkitApi.get().toCell(_entity.getLocation());
+            });
             String name = npc.getName();
             if (name == null) {
               name = npc.getIdentifyingString();

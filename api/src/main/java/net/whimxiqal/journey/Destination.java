@@ -23,22 +23,40 @@
 
 package net.whimxiqal.journey;
 
-import java.util.Collections;
-import net.kyori.adventure.text.Component;
-
 /**
  * A named place.
  */
-public interface Destination extends Describable, Permissible {
+public interface Destination extends Describable, Permissible, Targetter {
 
   /**
-   * Static constructor a builder.
+   * Builder for a destination defined by a single cell.
    *
-   * @param location the location
-   * @return the destination builder
+   * @param location the cell
+   * @return the builder
    */
-  static DestinationBuilder builder(Cell location) {
-    return new DestinationBuilder(location);
+  static DestinationBuilder cellBuilder(Cell location) {
+    return DestinationBuilderFactory.INSTANCE.cellDestinationBuilder(location);
+  }
+
+  /**
+   * Builder for a destination defined by a cell whose location changes.
+   *
+   * @param location the variable cell
+   * @return the builder
+   */
+  static DestinationBuilder movingBuilder(CellSupplier location) {
+    return DestinationBuilderFactory.INSTANCE.movingDestinationBuilder(location);
+  }
+
+  /**
+   * Builder for a destination defined by a cuboid region.
+   *
+   * @param point1 One corner of the region
+   * @param point2 Another corner of the region
+   * @return the builder
+   */
+  static DestinationBuilder boxBuilder(Cell point1, Cell point2) {
+    return DestinationBuilderFactory.INSTANCE.boxDestinationBuilder(point1, point2);
   }
 
   /**
@@ -48,14 +66,7 @@ public interface Destination extends Describable, Permissible {
    * @return the unnamed destination
    */
   static Destination of(Cell location) {
-    return new DestinationImpl(Component.empty(), Collections.emptyList(), location, null);
+    return DestinationBuilderFactory.INSTANCE.cellDestinationBuilder(location).build();
   }
-
-  /**
-   * The physical location of the destination.
-   *
-   * @return the location
-   */
-  Cell location();
 
 }

@@ -80,9 +80,9 @@ public class Path implements Serializable {
     return new Path(null, new ArrayList<>(), Double.MAX_VALUE);
   }
 
-  public static Path fromTunnel(Tunnel tunnel) {
-    return new Path(tunnel.origin(), Collections.singletonList(new Step(tunnel.destination(), 0, ModeType.TUNNEL, tunnel::prompt)),
-        tunnel.cost(), tunnel::prompt, tunnel::testCompletion);
+  public static Path fromTunnel(Tunnel tunnel, Cell origin) {
+    return new Path(origin, Collections.singletonList(new Step(tunnel.exit(), 0, ModeType.TUNNEL, tunnel::prompt)),
+        tunnel.cost(), tunnel::prompt, cell -> tunnel.exit().equals(cell));
   }
 
   public static Path stationary(Cell location) {

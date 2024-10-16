@@ -33,7 +33,6 @@ import net.whimxiqal.journey.Cell;
 import net.whimxiqal.journey.Destination;
 import net.whimxiqal.journey.Journey;
 import net.whimxiqal.journey.JourneyApi;
-import net.whimxiqal.journey.JourneyApiProvider;
 import net.whimxiqal.journey.JourneyTestHarness;
 import net.whimxiqal.journey.Scope;
 import net.whimxiqal.journey.VirtualMap;
@@ -152,7 +151,7 @@ public class TestCommands extends JourneyTestHarness {
 
   @Test
   void complicatedScope() throws ExecutionException, InterruptedException {
-    JourneyApi api = JourneyApiProvider.get();
+    JourneyApi api = JourneyApi.get();
     Destination destination = Destination.of(new Cell(0, 0, 0, WorldLoader.domain(0)));
     testProxy.revokeAllPermissions(PLAYER_UUID);
     final List<String> completions = new LinkedList<>();
@@ -165,7 +164,7 @@ public class TestCommands extends JourneyTestHarness {
                   Map<String, Destination> destinations = new HashMap<>();
                   destinations.put("path-a-1", destination);
                   destinations.put("path-shared", destination);
-                  destinations.put("permission", Destination.builder(new Cell(0, 0, 0, WorldLoader.domain(0))).permission("you-dont-have-this").build());
+                  destinations.put("permission", Destination.cellBuilder(new Cell(0, 0, 0, WorldLoader.domain(0))).permission("you-dont-have-this").build());
                   return VirtualMap.of(destinations);
                 }).build());
             scopes.put("path-b", Scope.builder()

@@ -66,7 +66,9 @@ public class InternalScope {
       }
       Map<String, SearchSession> sessionMap = new HashMap<>(sessions.apply(player).getAll());
       for (Map.Entry<String, ? extends Destination> destination : scope.destinations(player).getAll().entrySet()) {
-        SearchSession session = new DestinationGoalSearchSession(player, playerLocation.get(), destination.getValue().location(), false, true);
+        SearchSession session;
+        session = new DestinationGoalSearchSession(player, playerLocation.get(),
+            destination.getValue(), false, false);
         session.addFlags(Journey.get().searchManager().getFlagPreferences(player.uuid(), false));
         session.setName(destination.getValue().name());
         session.setDescription(destination.getValue().description());

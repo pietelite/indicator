@@ -28,9 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 import net.whimxiqal.journey.Cell;
 import net.whimxiqal.journey.JourneyApi;
-import net.whimxiqal.journey.JourneyApiProvider;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
 import net.whimxiqal.journey.navigation.NavigationApi;
 import net.whimxiqal.journey.navigation.NavigatorDetails;
 import net.whimxiqal.journey.navigation.NavigatorDetailsBuilder;
@@ -117,12 +115,10 @@ public class StartQuestListener implements Listener {
     }
 
     ConfigurationSection flagSection = firstObjective.getConfig().getConfigurationSection(firstObjective.getInitialConfigPath() + '.' + FLAGS_SECTION);
-    JourneyBukkitApi journeyBukkitApi = JourneyBukkitApiProvider.get();
-    Cell cell = journeyBukkitApi.toCell(firstObjective.getLocation());
+    Cell cell = JourneyBukkitApi.get().toCell(firstObjective.getLocation());
 
-    JourneyApi journeyApi = JourneyApiProvider.get();
-    SearchApi searchApi = journeyApi.searching();
-    NavigationApi navigationApi = journeyApi.navigating();
+    SearchApi searchApi = JourneyApi.get().searching();
+    NavigationApi navigationApi = JourneyApi.get().navigating();
     NavigatorDetails navigatorDetails = readNavigatorDetails(flagSection, navigationApi);
     UUID playerUuid = event.getQuestPlayer().getUniqueId();
     searchApi.runPlayerDestinationSearch(playerUuid, cell, readSearchFlags(flagSection))

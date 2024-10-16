@@ -79,10 +79,6 @@ public abstract class WeightedGraph<N, E> {
     return existingNode;
   }
 
-  protected final AlternatingList<N, E, Object> findMinimumPath(N origin, N destination, Predicate<E> edgeFilter) {
-    return findMinimumPath(origin, current -> current.equals(destination), edgeFilter);
-  }
-
   @Nullable
   protected final AlternatingList<N, E, Object> findMinimumPath(N origin, Predicate<N> done, Predicate<E> edgeFilter) {
     Node originNode = makeOrGetNode(origin);

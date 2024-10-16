@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import net.whimxiqal.journey.Cell;
 import net.whimxiqal.journey.Journey;
+import net.whimxiqal.journey.Target;
 import net.whimxiqal.journey.config.Settings;
 import net.whimxiqal.journey.data.DataAccessException;
 import net.whimxiqal.journey.navigation.Mode;
@@ -41,14 +42,13 @@ import net.whimxiqal.journey.search.function.WeightedDistanceCostFunction;
  */
 public class DestinationPathTrial extends PathTrial {
 
-  public static final double SUFFICIENT_COMPLETION_DISTANCE_SQUARED = 0;
   public static final double COST_FUNCTION_WEIGHT = 1.7;
   private static boolean loggedMaxCacheHit = false;  // only log this message once
-  private final Cell destination;
+  private final Target destination;
 
   public DestinationPathTrial(SearchSession session,
                               Cell origin,
-                              Cell destination,
+                              Target destination,
                               Collection<Mode> modes,
                               double length,
                               Path path,
@@ -56,9 +56,8 @@ public class DestinationPathTrial extends PathTrial {
                               boolean fromCache,
                               boolean saveOnComplete) {
     super(session, origin, modes,
-        new WeightedDistanceCostFunction(new EuclideanDistanceFunction(), destination, COST_FUNCTION_WEIGHT),
-        (blockProvider, node) -> node.getData().location().distanceToSquared(destination)
-            <= SUFFICIENT_COMPLETION_DISTANCE_SQUARED,
+        new WeightedDistanceCostFunction(new EuclideanDistanceFunction(), destination.get(origin), COST_FUNCTION_WEIGHT),
+        (blockProvider, node) -> destination.isSatisfiedBy(node.getData().location()),
         length,
         path,
         state,
@@ -67,7 +66,7 @@ public class DestinationPathTrial extends PathTrial {
     this.destination = destination;
   }
 
-  public Cell getDestination() {
+  public Target getDestination() {
     return destination;
   }
 
@@ -83,7 +82,7 @@ public class DestinationPathTrial extends PathTrial {
    * @return the successful path trial
    */
   public static DestinationPathTrial successful(SearchSession session,
-                                                Cell origin, Cell destination,
+                                                Cell origin, Target destination,
                                                 Collection<Mode> modes,
                                                 Path path) {
     return new DestinationPathTrial(session, origin, destination,
@@ -102,7 +101,7 @@ public class DestinationPathTrial extends PathTrial {
    * @return the path trial
    */
   public static DestinationPathTrial failed(SearchSession session,
-                                            Cell origin, Cell destination,
+                                            Cell origin, Target destination,
                                             Collection<Mode> modes) {
     return new DestinationPathTrial(session, origin, destination,
         modes,
@@ -122,12 +121,18 @@ public class DestinationPathTrial extends PathTrial {
    * @return the path trial
    */
   public static DestinationPathTrial approximate(SearchSession session,
-                                                 Cell origin, Cell destination,
+                                                 Cell origin, Target destination,
                                                  Collection<Mode> modes,
                                                  boolean saveOnComplete) {
+    Cell approximateDestination = destination.get(origin);
+    double approximateDistance = 0;
+    if (approximateDestination == null) {
+      approximateDistance = Double.MAX_VALUE;
+    } else {
+      approximateDistance = new PlanarOrientedDistanceFunction().distance(origin, approximateDestination);
+    }
     return new DestinationPathTrial(session, origin, destination,
-        modes,
-        new PlanarOrientedDistanceFunction().distance(origin, destination), null,
+        modes, approximateDistance, null,
         ResultState.IDLE, false, saveOnComplete);
   }
 
@@ -141,7 +146,7 @@ public class DestinationPathTrial extends PathTrial {
    * @return the path trial
    */
   public static DestinationPathTrial cached(SearchSession session,
-                                            Cell origin, Cell destination,
+                                            Cell origin, Target destination,
                                             Collection<Mode> modes,
                                             Path path) {
     return new DestinationPathTrial(session, origin, destination,
@@ -162,10 +167,11 @@ public class DestinationPathTrial extends PathTrial {
       return;
     }
     try {
-      Journey.get().proxy().dataManager().pathRecordManager().report(
-          this,
-          getModes().stream().map(Mode::type).collect(Collectors.toSet()),
-          System.currentTimeMillis() - startExecutionTime);
+      // TODO [caching]
+//      Journey.get().proxy().dataManager().pathRecordManager().report(
+//          this,
+//          getModes().stream().map(Mode::type).collect(Collectors.toSet()),
+//          System.currentTimeMillis() - startExecutionTime);
     } catch (DataAccessException e) {
       Journey.logger().error("SQL error trying to cache a path.");
     }

@@ -21,34 +21,37 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.whimxiqal.journey.bukkit;
+package net.whimxiqal.journey;
 
-import java.util.NoSuchElementException;
+import net.kyori.adventure.text.Component;
+import net.whimxiqal.journey.message.Formatter;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * The static provider of a {@link JourneyBukkitApi}.
- */
-public final class JourneyBukkitApiProvider {
+public class BoxTarget implements Target {
 
-  private static JourneyBukkitApi instance;
+  private final CellBox box;
 
-  /**
-   * Getter for the {@link JourneyBukkitApi}.
-   *
-   * @return the Journey Bukkit API
-   */
-  public static JourneyBukkitApi get() {
-    if (instance == null) {
-      throw new NoSuchElementException("No JourneyBukkitApi has been set yet.");
-    }
-    return instance;
+  public BoxTarget(CellBox box) {
+    this.box = box;
   }
 
-  static void provide(JourneyBukkitApi instance) {
-    JourneyBukkitApiProvider.instance = instance;
+  @Override
+  public @Nullable Cell get(Cell cell) {
+    return box.closestInteriorCell(cell);
   }
 
-  private JourneyBukkitApiProvider() {
+  @Override
+  public boolean isSatisfiedBy(Cell location) {
+    return box.contains(location);
   }
 
+  @Override
+  public int domain() {
+    return box.domain();
+  }
+
+  @Override
+  public Component print() {
+    return Formatter.box(box);
+  }
 }

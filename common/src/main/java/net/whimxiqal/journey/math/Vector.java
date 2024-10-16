@@ -31,6 +31,10 @@ public record Vector(double x, double y, double z) {
     return new Vector(x - other.x, y - other.y, z - other.z);
   }
 
+  public Vector add(Vector other) {
+    return new Vector(x + other.x, y + other.y, z + other.z);
+  }
+
   public Vector times(double factor) {
     return new Vector(x * factor, y * factor, z * factor);
   }
@@ -59,6 +63,14 @@ public record Vector(double x, double y, double z) {
 
   public Vector unit() {
     return times(1d / magnitude());
+  }
+
+  public Vector min(Vector other) {
+    return new Vector(Math.min(x, other.x), Math.min(y, other.y), Math.min(z, other.z));
+  }
+
+  public Vector max(Vector other) {
+    return new Vector(Math.max(x, other.x), Math.max(y, other.y), Math.max(z, other.z));
   }
 
   @Override

@@ -101,11 +101,6 @@ public class TestPlatformProxy implements PlatformProxy {
   }
 
   @Override
-  public void prepareDestinationSearchSession(SearchSession searchSession, JourneyAgent agent, FlagSet flags, Cell destination) {
-    // do nothing extra here
-  }
-
-  @Override
   public void sendAnimationBlock(UUID player, Cell location) {
     animatedBlocks += 1;
   }
@@ -132,8 +127,8 @@ public class TestPlatformProxy implements PlatformProxy {
   }
 
   @Override
-  public Map<String, Map<String, Integer>> domainResourceKeys() {
-    return Collections.singletonMap("whimxiqal", TestPlatformProxy.worlds.values().stream().collect(Collectors.toMap(k -> k.name, k -> Journey.get().domainManager().domainIndex(k.uuid))));
+  public Map<String, Map<String, DomainInfo>> domainResourceKeys() {
+    return Collections.singletonMap("whimxiqal", TestPlatformProxy.worlds.values().stream().collect(Collectors.toMap(k -> k.name, k -> new DomainInfo(k.name, Journey.get().domainManager().domainIndex(k.uuid)))));
   }
 
   @Override

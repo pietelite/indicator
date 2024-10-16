@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
 import net.kyori.adventure.text.Component;
 import net.whimxiqal.journey.InternalJourneyPlayer;
 import net.whimxiqal.journey.Journey;
-import net.whimxiqal.journey.common.JourneyLexer;
-import net.whimxiqal.journey.common.JourneyParser;
 import net.whimxiqal.journey.data.Waypoint;
 import net.whimxiqal.journey.message.Formatter;
 import net.whimxiqal.journey.message.Messages;

@@ -64,6 +64,7 @@ java {
 }
 
 checkstyle {
+    toolVersion = "10.17.0"
     ignoreFailures = false
     maxWarnings = 0
 }

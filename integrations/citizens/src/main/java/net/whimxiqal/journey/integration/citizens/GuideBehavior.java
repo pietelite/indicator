@@ -32,7 +32,6 @@ import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.Gravity;
 import net.whimxiqal.journey.Cell;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
 import net.whimxiqal.journey.search.SearchStep;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -46,7 +45,6 @@ public class GuideBehavior extends BehaviorGoalAdapter {
   private static final int NAVIGATION_TARGET_MAX_DISTANCE_SQUARED = 64;
   private static final int AGENT_DISTANCE_PROGRESS_THRESHOLD_SQUARED = 64;
   private static final int COMPLETION_THRESHOLD_SQUARED = 9;
-  private final JourneyBukkitApi journeyBukkitApi;
   private final NpcNavigator navigator;
   private final List<? extends SearchStep> path;
   private boolean done;
@@ -54,7 +52,6 @@ public class GuideBehavior extends BehaviorGoalAdapter {
   private int currentPathIndex;
 
   public GuideBehavior(NpcNavigator navigator, List<? extends SearchStep> path, int currentPathIndex) {
-    this.journeyBukkitApi = JourneyBukkitApiProvider.get();
     this.navigator = navigator;
     this.path = path;
     this.done = false;
@@ -95,7 +92,7 @@ public class GuideBehavior extends BehaviorGoalAdapter {
 
     if (done) {
       performIdleBehavior(npc, agent);
-      if (!journeyBukkitApi.toCell(npc.getEntity().getLocation()).equals(path.getLast().location())) {
+      if (!JourneyBukkitApi.get().toCell(npc.getEntity().getLocation()).equals(path.get(path.size() - 1).location())) {
         // somehow we got off the destination, re-teleport there
         npc.teleport(destination(), PlayerTeleportEvent.TeleportCause.PLUGIN);
       }
@@ -118,7 +115,7 @@ public class GuideBehavior extends BehaviorGoalAdapter {
     }
 
     Location npcLocation = npc.getEntity().getLocation();
-    Cell npcCell = journeyBukkitApi.toCell(npcLocation);
+    Cell npcCell = JourneyBukkitApi.get().toCell(npcLocation);
     if (agentTooFarWay(npc.getEntity(), agent)) {
       // Agent is too far away from NPC, or we've reached the destination. Turn, face agent, and wait
       if (npc.getNavigator().isNavigating()) {
@@ -149,7 +146,7 @@ public class GuideBehavior extends BehaviorGoalAdapter {
       target = path.get(currentPathIndex);
     }
 
-    Location targetLocation = journeyBukkitApi.toLocation(target.location()).toCenterLocation();
+    Location targetLocation = JourneyBukkitApi.get().toLocation(target.location()).toCenterLocation();
     if (npcCell.distanceToSquared(target.location()) > NAVIGATION_TARGET_MAX_DISTANCE_SQUARED) {
       // oops, this is too far. Just teleport.
       npc.teleport(targetLocation, PlayerTeleportEvent.TeleportCause.PLUGIN);
@@ -187,7 +184,7 @@ public class GuideBehavior extends BehaviorGoalAdapter {
   }
 
   private Location destination() {
-    return journeyBukkitApi.toLocation(path.getLast().location()).toCenterLocation();
+    return JourneyBukkitApi.get().toLocation(path.getLast().location()).toCenterLocation();
   }
 
   private void performIdleBehavior(NPC npc, Entity agent) {

@@ -23,24 +23,10 @@
 
 package net.whimxiqal.journey;
 
-import java.util.function.Predicate;
-
 /**
  * A builder for a {@link Tunnel}.
  */
-public class TunnelBuilder implements Builder<Tunnel> {
-
-  private final Cell origin;
-  private final Cell destination;
-  private int cost = Tunnel.DEFAULT_COST;
-  private Runnable prompt;
-  private Predicate<Cell> completionTester;
-  private String permission;
-
-  TunnelBuilder(Cell origin, Cell destination) {
-    this.origin = origin;
-    this.destination = destination;
-  }
+public interface TunnelBuilder extends Builder<Tunnel> {
 
   /**
    * Set the cost of traversing this Tunnel, where walking 1 block costs 1.
@@ -50,10 +36,7 @@ public class TunnelBuilder implements Builder<Tunnel> {
    * @param cost the cost
    * @return the builder, for chaining
    */
-  public TunnelBuilder cost(int cost) {
-    this.cost = cost;
-    return this;
-  }
+  TunnelBuilder cost(int cost);
 
   /**
    * Set the prompt that gets run once this tunnel is next in the path traversal.
@@ -63,23 +46,7 @@ public class TunnelBuilder implements Builder<Tunnel> {
    * @param prompt the prompt
    * @return the builder, for chaining
    */
-  public TunnelBuilder prompt(Runnable prompt) {
-    this.prompt = prompt;
-    return this;
-  }
-
-  /**
-   * Set the completion tester, which just is used to determine whether the tunnel
-   * has been completed if the user is at the given {@link Cell}.
-   * This is not required, and a default distance-based calculation will be used instead.
-   *
-   * @param completionTester the tester
-   * @return the builder, for chaining
-   */
-  public TunnelBuilder completionTester(Predicate<Cell> completionTester) {
-    this.completionTester = completionTester;
-    return this;
-  }
+  TunnelBuilder prompt(Runnable prompt);
 
   /**
    * Set the permission for this tunnel. This should just be the permission
@@ -88,13 +55,5 @@ public class TunnelBuilder implements Builder<Tunnel> {
    * @param permission the permission
    * @return the builder, for chaining
    */
-  public TunnelBuilder permission(String permission) {
-    this.permission = permission;
-    return this;
-  }
-
-  @Override
-  public Tunnel build() {
-    return new TunnelImpl(origin, destination, cost, prompt, completionTester, permission);
-  }
+  TunnelBuilder permission(String permission);
 }

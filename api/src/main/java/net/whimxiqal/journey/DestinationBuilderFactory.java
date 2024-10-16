@@ -21,18 +21,23 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.whimxiqal.journey.tools;
+package net.whimxiqal.journey;
 
-/**
- * Representation for an object that has a valid and invalid state.
- */
-public interface Verifiable {
+import java.util.ServiceLoader;
+import org.jetbrains.annotations.ApiStatus;
 
-  /**
-   * Verify if this object is valid.
-   *
-   * @return true if valid object
-   */
-  boolean verify();
+@ApiStatus.Internal
+interface DestinationBuilderFactory {
+
+  DestinationBuilderFactory INSTANCE = ServiceLoader.load(
+          DestinationBuilderFactory.class,
+          DestinationBuilderFactory.class.getClassLoader())
+      .findFirst().orElseThrow();
+
+  DestinationBuilder cellDestinationBuilder(Cell location);
+
+  DestinationBuilder movingDestinationBuilder(CellSupplier location);
+
+  DestinationBuilder boxDestinationBuilder(Cell point1, Cell point2);
 
 }

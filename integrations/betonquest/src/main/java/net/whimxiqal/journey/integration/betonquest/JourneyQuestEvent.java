@@ -32,9 +32,7 @@ import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.whimxiqal.journey.JourneyApi;
-import net.whimxiqal.journey.JourneyApiProvider;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
 import net.whimxiqal.journey.navigation.NavigatorDetailsBuilder;
 import net.whimxiqal.journey.search.SearchFlag;
 import net.whimxiqal.journey.search.SearchFlags;
@@ -140,23 +138,21 @@ public class JourneyQuestEvent implements Event {
   @Override
   public void execute(Profile profile) throws QuestRuntimeException {
     Location location = this.variableLocation.getValue(profile);
-    JourneyApi journey = JourneyApiProvider.get();
-    JourneyBukkitApi journeyBukkit = JourneyBukkitApiProvider.get();
-    journey.searching().runPlayerDestinationSearch(profile.getPlayerUUID(), journeyBukkit.toCell(location), SearchFlags.of(searchFlags))
+    JourneyApi.get().searching().runPlayerDestinationSearch(profile.getPlayerUUID(), JourneyBukkitApi.get().toCell(location), SearchFlags.of(searchFlags))
         .thenAccept(result -> {
-          journey.navigating().stopNavigation(profile.getPlayerUUID()).thenAccept(stopResult -> {
+          JourneyApi.get().navigating().stopNavigation(profile.getPlayerUUID()).thenAccept(stopResult -> {
             if (result.status() == SearchResult.Status.SUCCESS) {
               if (successMessage != null && profile.getOnlineProfile().isPresent()) {
                 profile.getOnlineProfile().get().getPlayer().sendMessage(successMessage);
               }
               NavigatorDetailsBuilder<?> detailsBuilder;
               if (navigatorType == null) {
-                detailsBuilder = journey.navigating().trailNavigatorDetailsBuilder();
+                detailsBuilder = JourneyApi.get().navigating().trailNavigatorDetailsBuilder();
               } else {
-                detailsBuilder = journey.navigating().navigatorDetailsBuilder(navigatorType);
+                detailsBuilder = JourneyApi.get().navigating().navigatorDetailsBuilder(navigatorType);
                 navigatorOptions.forEach(detailsBuilder::setOption);
               }
-              journey.navigating().navigatePlayer(profile.getPlayerUUID(), result.path(), detailsBuilder.build());
+              JourneyApi.get().navigating().navigatePlayer(profile.getPlayerUUID(), result.path(), detailsBuilder.build());
             } else {
               if (failureMessage != null && profile.getOnlineProfile().isPresent()) {
                 profile.getOnlineProfile().get().getPlayer().sendMessage(failureMessage);

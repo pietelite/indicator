@@ -23,13 +23,38 @@
 
 package net.whimxiqal.journey;
 
-public final class JourneyApiSupplier {
+import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.Nullable;
 
-  private JourneyApiSupplier() {
-  }
+/**
+ * A function to determine the target.
+ */
+public interface Target {
 
-  public static void set(JourneyApi api) {
-    JourneyApiProvider.provide(api);
-  }
+  /**
+   * Given a starting location, the target location that should be approached.
+   *
+   * @param origin the origin
+   * @return an appropriate destination
+   */
+  @Nullable
+  Cell get(Cell origin);
+
+  /**
+   * Determine whether a given location is "at" the destination.
+   *
+   * @param location the location to check
+   * @return true if destination is reached by being at the given location
+   */
+  boolean isSatisfiedBy(Cell location);
+
+  /**
+   * The domain that this targeting is operating in.
+   *
+   * @return the domain
+   */
+  int domain();
+
+  Component print();
 
 }

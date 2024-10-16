@@ -23,14 +23,25 @@
 
 package net.whimxiqal.journey.bukkit;
 
+import java.util.ServiceLoader;
 import net.whimxiqal.journey.Cell;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * The interface for Bukkit-specific external-facing endpoints for Journey.
  */
 public interface JourneyBukkitApi {
+
+  /**
+   * Get the Bukkit API instance.
+   *
+   * @return the Journey Bukkit API
+   */
+  static JourneyBukkitApi get() {
+    return JourneyBukkitApi.Provider.INSTANCE;
+  }
 
   /**
    * Convert the Bukkit {@link World} to a domain identifier, which is used to identify
@@ -64,5 +75,17 @@ public interface JourneyBukkitApi {
    * @return the location
    */
   Location toLocation(Cell cell);
+
+  @ApiStatus.Internal
+  final class Provider {
+
+    private static final JourneyBukkitApi INSTANCE = ServiceLoader.load(
+            JourneyBukkitApi.class,
+            JourneyBukkitApi.class.getClassLoader())
+        .findFirst().orElseThrow();
+
+    private Provider() {
+    }
+  }
 
 }

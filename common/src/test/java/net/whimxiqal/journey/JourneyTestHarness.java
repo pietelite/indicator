@@ -71,13 +71,11 @@ public class JourneyTestHarness {
     proxy.schedulingManager().initialize();  // initialize early so that we can schedule on main thread
     TestSchedulingManager.runOnMainThread(() -> {
       // journey initialization must happen on main thread
-      if (!Journey.get().init()) {
-        Assertions.fail("Journey initialization failed");
-      }
+      Assertions.assertTrue(Journey.get().init(), "Journey initialization failed");
       WorldLoader.initWorlds();
 
       TestPlatformProxy.onlinePlayers.add(new TestJourneyPlayer(PLAYER_UUID));
-      JourneyApiProvider.get().registerTunnels("Journey", player -> TestPlatformProxy.tunnels);
+      JourneyApi.get().registerTunnels("Journey", player -> TestPlatformProxy.tunnels);
     });
   }
 
@@ -86,6 +84,7 @@ public class JourneyTestHarness {
     TestSchedulingManager.runOnMainThread(() -> {
       Journey.get().shutdown();
       Journey.remove();
+      TestPlatformProxy.worlds.clear();
     });
   }
 

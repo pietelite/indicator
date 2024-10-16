@@ -26,9 +26,8 @@ package net.whimxiqal.journey.integration.notquests;
 import java.util.List;
 import java.util.logging.Logger;
 import net.whimxiqal.journey.JourneyApi;
-import net.whimxiqal.journey.JourneyApiProvider;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -58,15 +57,7 @@ public final class JourneyNotQuests extends JavaPlugin {
   public void onEnable() {
     JourneyNotQuests.logger = getLogger();
 
-    Plugin journey = getServer().getPluginManager().getPlugin("Journey");
-    if (journey == null) {
-      logger().severe("Could not find Journey");
-      setEnabled(false);
-      return;
-    }
-
-    JourneyApi api = JourneyApiProvider.get();
-    api.registerScope(getName(), "notquests", new NotQuestsScope());
+    JourneyApi.get().registerScope(getName(), "notquests", new NotQuestsScope());
     Bukkit.getPluginManager().registerEvents(new StartQuestListener(), this);
 
     // edit command structure to include a "useJourney" argument for objectives
@@ -101,20 +92,20 @@ public final class JourneyNotQuests extends JavaPlugin {
               final boolean useJourney = context.get("value");
               boolean existing = objective.getConfig().getBoolean(path, false);
               if (useJourney == existing) {
-                context.getSender().sendMessage(ChatColor.RED + "Objective " + objective.getObjectiveID() + " already has useJourney set to " + existing);
+                context.getSender().sendMessage(Color.RED + "Objective " + objective.getObjectiveID() + " already has useJourney set to " + existing);
                 return;
               }
               if (useJourney) {
                 objectiveHolder.getConfig().set(path, true);
                 boolean hasLocation = objectiveHolder.getConfig().isConfigurationSection(objectiveHolder.getInitialConfigPath() + ".objectives." + objective.getObjectiveID() + ".location");
                 if (hasLocation) {
-                  context.getSender().sendMessage(ChatColor.GREEN + "Journey will now help navigate players to this objective, " + ChatColor.YELLOW + " but only after you set a location for it");
+                  context.getSender().sendMessage(Color.GREEN + "Journey will now help navigate players to this objective, " + Color.YELLOW + " but only after you set a location for it");
                 } else {
-                  context.getSender().sendMessage(ChatColor.GREEN + "Journey will now help navigate players to this objective's location");
+                  context.getSender().sendMessage(Color.GREEN + "Journey will now help navigate players to this objective's location");
                 }
               } else {
                 objectiveHolder.getConfig().set(path, null);
-                context.getSender().sendMessage(ChatColor.YELLOW + "Journey will not navigate players to this objective");
+                context.getSender().sendMessage(Color.YELLOW + "Journey will not navigate players to this objective");
               }
               objectiveHolder.saveConfig();
             }));

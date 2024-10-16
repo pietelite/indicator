@@ -29,32 +29,42 @@ package net.whimxiqal.journey;
  */
 public interface Tunnel extends Permissible {
 
-  int DEFAULT_COST = 1;
-
   /**
-   * Static constructor for a builder of a Tunnel.
+   * A standard tunnel builder.
    *
-   * @param origin      the origin
-   * @param destination the destination
+   * @param entrance the entrance
+   * @param exit     the exit
    * @return the builder
    */
-  static TunnelBuilder builder(Cell origin, Cell destination) {
-    return new TunnelBuilder(origin, destination);
+  static TunnelBuilder builder(Cell entrance, Cell exit) {
+    return TunnelBuilderFactory.INSTANCE.builder(entrance, exit);
+  }
+
+  /**
+   * A builder that has a cubiod region for an entrance.
+   *
+   * @param entrance1 point 1 of the cubiod entrance
+   * @param entrance2 point 2 of the cubiod entrance
+   * @param exit      the exit
+   * @return the builder
+   */
+  static TunnelBuilder boxEntranceBuilder(Cell entrance1, Cell entrance2, Cell exit) {
+    return TunnelBuilderFactory.INSTANCE.boxEntranceBuilder(entrance1, entrance2, exit);
   }
 
   /**
    * The starting location, or "entrance" to the tunnel.
    *
-   * @return the origin
+   * @return the entrance
    */
-  Cell origin();
+  Target entrance();
 
   /**
-   * The ending location, or "exit" of the tunnel.
+   * The final location, or "exit" to the tunnel.
    *
-   * @return the destination
+   * @return the exit
    */
-  Cell destination();
+  Cell exit();
 
   /**
    * The cost of traveling along the tunnel. A cost of 1 indicates the cost to walk a single block.
@@ -62,9 +72,7 @@ public interface Tunnel extends Permissible {
    *
    * @return the cost
    */
-  default int cost() {
-    return DEFAULT_COST;
-  }
+  int cost();
 
   /**
    * The prompt to signal that the tunnel should be traversed.
@@ -73,17 +81,6 @@ public interface Tunnel extends Permissible {
    */
   default void prompt() {
     // nothing
-  }
-
-  /**
-   * Whether the given location is one which constitutes the tunnel being traversed.
-   * By default, the tunnel is completed if the distance from the destination is at most 1.
-   *
-   * @param location the location
-   * @return true if the tunnel would be completed with the given location
-   */
-  default boolean testCompletion(Cell location) {
-    return location.distanceToSquared(destination()) <= 1;
   }
 
 }

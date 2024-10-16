@@ -23,24 +23,13 @@
 
 package net.whimxiqal.journey;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 
 /**
  * A builder for a {@link Destination}.
  */
-public class DestinationBuilder implements Builder<Destination> {
-
-  private final Cell location;
-  private Component name = Component.empty();
-  private List<Component> description = Collections.emptyList();
-  private String permission = null;
-
-  DestinationBuilder(Cell location) {
-    this.location = location;
-  }
+public interface DestinationBuilder extends Builder<Destination> {
 
   /**
    * Set the name.
@@ -48,10 +37,7 @@ public class DestinationBuilder implements Builder<Destination> {
    * @param name the name
    * @return the builder, for chaining
    */
-  public DestinationBuilder name(Component name) {
-    this.name = name;
-    return this;
-  }
+  DestinationBuilder name(Component name);
 
   /**
    * Set the description.
@@ -59,10 +45,7 @@ public class DestinationBuilder implements Builder<Destination> {
    * @param description the description
    * @return the builder, for chaining
    */
-  public DestinationBuilder description(Component... description) {
-    this.description = Arrays.asList(description);
-    return this;
-  }
+  DestinationBuilder description(Component... description);
 
   /**
    * Set the description.
@@ -70,10 +53,7 @@ public class DestinationBuilder implements Builder<Destination> {
    * @param description the description
    * @return the builder, for chaining
    */
-  public DestinationBuilder description(List<Component> description) {
-    this.description = description;
-    return this;
-  }
+  DestinationBuilder description(List<Component> description);
 
   /**
    * Set the permission.
@@ -84,13 +64,6 @@ public class DestinationBuilder implements Builder<Destination> {
    * @param permission the permission
    * @return the builder, for chaining
    */
-  public DestinationBuilder permission(String permission) {
-    this.permission = permission;
-    return this;
-  }
+  DestinationBuilder permission(String permission);
 
-  @Override
-  public Destination build() {
-    return new DestinationImpl(name, description, location, permission);
-  }
 }

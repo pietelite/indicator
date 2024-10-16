@@ -50,7 +50,7 @@ class WeightedGraphTest extends JourneyTestHarness {
     graph.addEdge(D, F, new Edge(2));
     graph.addEdge(E, D, new Edge(3));
     graph.addEdge(E, F, new Edge(15));
-    AlternatingList<Node, Edge, Object> result = graph.findMinimumPath(A, F, e -> true);
+    AlternatingList<Node, Edge, Object> result = graph.findMinimumPath(A, F::equals, e -> true);
     Assertions.assertNotNull(result);
 
     Collection<Node> nodes = result.getMajors();

@@ -99,15 +99,20 @@ public class SqliteDataVersionHandler extends SqlDataVersionHandler {
           }
         } else {
           Journey.logger().warn("Updating from internal database version " + DataVersion.V001 + " but could not find legacy version file");
+          return currentDataVersion;
         }
-        if (runBatch("/data/sql/migration/V001/sqlite.sql")) {
-          return DataVersion.V002;
+        if (!runBatch("/data/sql/migration/V001/sqlite.sql")) {
+          return currentDataVersion;
         }
+        return DataVersion.V002;
       }
       default -> {
+        if (runBatch("/data/sql/migration/V" + currentDataVersion.printVersion() + "/sqlite.sql")) {
+          return DataVersion.ERROR;
+        }
+        return DataVersion.fromInt(currentDataVersion.internalVersion + 1);
       }
     }
 
-    return currentDataVersion;
   }
 }

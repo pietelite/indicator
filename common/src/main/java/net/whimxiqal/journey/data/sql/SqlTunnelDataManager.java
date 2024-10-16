@@ -30,7 +30,9 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import net.whimxiqal.journey.BoxTargetTunnel;
 import net.whimxiqal.journey.Cell;
+import net.whimxiqal.journey.CellBox;
 import net.whimxiqal.journey.Journey;
 import net.whimxiqal.journey.Tunnel;
 import net.whimxiqal.journey.data.DataAccessException;
@@ -42,36 +44,55 @@ import net.whimxiqal.journey.util.UUIDUtil;
 public class SqlTunnelDataManager extends SqlManager implements TunnelDataManager {
 
   public static final String NETHER_TUNNEL_TABLE_NAME = "journey_tunnels";
+  public static final String ENTRANCE_DOMAIN_ID_COLUMN_NAME = "entrance_domain_id";
+  public static final String ENTRANCE_0_X_COLUMN_NAME = "entrance_0_x";
+  public static final String ENTRANCE_0_Y_COLUMN_NAME = "entrance_0_y";
+  public static final String ENTRANCE_0_Z_COLUMN_NAME = "entrance_0_z";
+  public static final String ENTRANCE_1_X_COLUMN_NAME = "entrance_1_x";
+  public static final String ENTRANCE_1_Y_COLUMN_NAME = "entrance_1_y";
+  public static final String ENTRANCE_1_Z_COLUMN_NAME = "entrance_1_z";
+  public static final String EXIT_DOMAIN_ID_COLUMN_NAME = "exit_domain_id";
+  public static final String EXIT_X_ID_COLUMN_NAME = "exit_x";
+  public static final String EXIT_Y_ID_COLUMN_NAME = "exit_y";
+  public static final String EXIT_Z_ID_COLUMN_NAME = "exit_z";
+  public static final String TUNNEL_TYPE_COLUMN_NAME = "tunnel_type";
 
   public SqlTunnelDataManager(SqlConnectionController connectionController) {
     super(connectionController);
   }
 
   @Override
-  public void addTunnel(Cell origin, Cell destination, double cost, TunnelType type) {
+  public void addTunnel(CellBox entrance, Cell exit, TunnelType type) {
     try (Connection connection = getConnectionController().establishConnection()) {
       PreparedStatement statement = connection.prepareStatement(String.format(
-          "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
+          "INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);",
           NETHER_TUNNEL_TABLE_NAME,
-          "origin_domain_id",
-          "origin_x",
-          "origin_y",
-          "origin_z",
-          "destination_domain_id",
-          "destination_x",
-          "destination_y",
-          "destination_z",
-          "tunnel_type"));
+          ENTRANCE_DOMAIN_ID_COLUMN_NAME,
+          ENTRANCE_0_X_COLUMN_NAME,
+          ENTRANCE_0_Y_COLUMN_NAME,
+          ENTRANCE_0_Z_COLUMN_NAME,
+          ENTRANCE_1_X_COLUMN_NAME,
+          ENTRANCE_1_Y_COLUMN_NAME,
+          ENTRANCE_1_Z_COLUMN_NAME,
+          EXIT_DOMAIN_ID_COLUMN_NAME,
+          EXIT_X_ID_COLUMN_NAME,
+          EXIT_Y_ID_COLUMN_NAME,
+          EXIT_Z_ID_COLUMN_NAME,
+          TUNNEL_TYPE_COLUMN_NAME));
 
-      statement.setBytes(1, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(origin.domain())));
-      statement.setInt(2, origin.blockX());
-      statement.setInt(3, origin.blockY());
-      statement.setInt(4, origin.blockZ());
-      statement.setBytes(5, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(destination.domain())));
-      statement.setInt(6, destination.blockX());
-      statement.setInt(7, destination.blockY());
-      statement.setInt(8, destination.blockZ());
-      statement.setInt(9, type.id());
+      int parameterIndex = 1;
+      statement.setBytes(parameterIndex++, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(entrance.domain())));
+      statement.setInt(parameterIndex++, entrance.min().blockX());
+      statement.setInt(parameterIndex++, entrance.min().blockY());
+      statement.setInt(parameterIndex++, entrance.min().blockZ());
+      statement.setInt(parameterIndex++, entrance.max().blockX());
+      statement.setInt(parameterIndex++, entrance.max().blockY());
+      statement.setInt(parameterIndex++, entrance.max().blockZ());
+      statement.setBytes(parameterIndex++, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(exit.domain())));
+      statement.setInt(parameterIndex++, exit.blockX());
+      statement.setInt(parameterIndex++, exit.blockY());
+      statement.setInt(parameterIndex++, exit.blockZ());
+      statement.setInt(parameterIndex++, type.id());
 
       statement.execute();
     } catch (SQLException e) {
@@ -81,46 +102,12 @@ public class SqlTunnelDataManager extends SqlManager implements TunnelDataManage
   }
 
   @Override
-  public Collection<Tunnel> getTunnelsWithOrigin(Cell origin, TunnelType type) {
-    return getPortsWithOneSide(origin, "origin", type);
-  }
-
-  @Override
-  public Collection<Tunnel> getTunnelsWithDestination(Cell destination, TunnelType type) {
-    return getPortsWithOneSide(destination, "destination", type);
-  }
-
-  private Collection<Tunnel> getPortsWithOneSide(Cell cell, String cellTypePrefix, TunnelType type) {
-    try (Connection connection = getConnectionController().establishConnection()) {
-      PreparedStatement statement = connection.prepareStatement(String.format(
-          "SELECT * FROM %s WHERE %s = ? AND %s = ? AND %s = ? AND %s = ? and %s = ?;",
-          NETHER_TUNNEL_TABLE_NAME,
-          cellTypePrefix + "_domain_id",
-          cellTypePrefix + "_x",
-          cellTypePrefix + "_y",
-          cellTypePrefix + "_z",
-          "tunnel_type"));
-
-      statement.setBytes(1, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(cell.domain())));
-      statement.setInt(2, cell.blockX());
-      statement.setInt(3, cell.blockY());
-      statement.setInt(4, cell.blockZ());
-      statement.setInt(5, type.id());
-
-      return extractTunnels(statement.executeQuery());
-    } catch (SQLException e) {
-      e.printStackTrace();
-      throw new DataAccessException();
-    }
-  }
-
-  @Override
-  public Collection<Tunnel> getAllTunnels(TunnelType type) {
+  public Collection<BoxTargetTunnel> getAllTunnels(TunnelType type) {
     try (Connection connection = getConnectionController().establishConnection()) {
       PreparedStatement statement = connection.prepareStatement(String.format(
           "SELECT * FROM %s WHERE %s = ?;",
           NETHER_TUNNEL_TABLE_NAME,
-          "tunnel_type"));
+          TUNNEL_TYPE_COLUMN_NAME));
 
       statement.setInt(1, type.id());
 
@@ -132,22 +119,29 @@ public class SqlTunnelDataManager extends SqlManager implements TunnelDataManage
   }
 
   @Override
-  public void removeTunnelsWithOrigin(Cell origin, TunnelType type) {
+  public void removeTunnelsWithOrigin(CellBox entrance, TunnelType exit) {
     try (Connection connection = getConnectionController().establishConnection()) {
       PreparedStatement statement = connection.prepareStatement(String.format(
-          "DELETE FROM %s WHERE %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ?;",
+          "DELETE FROM %s WHERE %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ?;",
           NETHER_TUNNEL_TABLE_NAME,
-          "origin_domain_id",
-          "origin_x",
-          "origin_y",
-          "origin_z",
-          "tunnel_type"));
+          ENTRANCE_DOMAIN_ID_COLUMN_NAME,
+          ENTRANCE_0_X_COLUMN_NAME,
+          ENTRANCE_0_Y_COLUMN_NAME,
+          ENTRANCE_0_Z_COLUMN_NAME,
+          ENTRANCE_1_X_COLUMN_NAME,
+          ENTRANCE_1_Y_COLUMN_NAME,
+          ENTRANCE_1_Z_COLUMN_NAME,
+          TUNNEL_TYPE_COLUMN_NAME));
 
-      statement.setBytes(1, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(origin.domain())));
-      statement.setInt(2, origin.blockX());
-      statement.setInt(3, origin.blockY());
-      statement.setInt(4, origin.blockZ());
-      statement.setInt(5, type.id());
+      int parameterIndex = 1;
+      statement.setBytes(parameterIndex++, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(entrance.domain())));
+      statement.setInt(parameterIndex++, entrance.min().blockX());
+      statement.setInt(parameterIndex++, entrance.min().blockY());
+      statement.setInt(parameterIndex++, entrance.min().blockZ());
+      statement.setInt(parameterIndex++, entrance.max().blockX());
+      statement.setInt(parameterIndex++, entrance.max().blockY());
+      statement.setInt(parameterIndex++, entrance.max().blockZ());
+      statement.setInt(parameterIndex++, exit.id());
 
       statement.executeUpdate();
     } catch (SQLException e) {
@@ -156,54 +150,69 @@ public class SqlTunnelDataManager extends SqlManager implements TunnelDataManage
     }
   }
 
-  private Collection<Tunnel> extractTunnels(ResultSet resultSet) throws SQLException {
-    List<Tunnel> tunnels = new LinkedList<>();
+  private Collection<BoxTargetTunnel> extractTunnels(ResultSet resultSet) throws SQLException {
+    List<BoxTargetTunnel> tunnels = new LinkedList<>();
     while (resultSet.next()) {
-      TunnelType type = TunnelType.MAP.get(resultSet.getInt("tunnel_type"));
+      TunnelType type = TunnelType.MAP.get(resultSet.getInt(TUNNEL_TYPE_COLUMN_NAME));
       if (type == null) {
-        throw new IllegalStateException("A tunnel with an invalid type was found in the database: " + resultSet.getInt("tunnel_type"));
+        throw new IllegalStateException("A tunnel with an invalid type was found in the database: " + resultSet.getInt(TUNNEL_TYPE_COLUMN_NAME));
       }
       switch (type) {
-        case NETHER -> tunnels.add(new NetherTunnel(
-            new Cell(resultSet.getInt("origin_x"),
-                resultSet.getInt("origin_y"),
-                resultSet.getInt("origin_z"),
-                Journey.get().domainManager().domainIndex(UUIDUtil.bytesToUuid(resultSet.getBytes("origin_domain_id")))),
-            new Cell(resultSet.getInt("destination_x"),
-                resultSet.getInt("destination_y"),
-                resultSet.getInt("destination_z"),
-                Journey.get().domainManager().domainIndex(UUIDUtil.bytesToUuid(resultSet.getBytes("destination_domain_id"))))));
-        default -> throw new RuntimeException(); // programmer error
+        case NETHER -> {
+          int domain = Journey.get().domainManager().domainIndex(UUIDUtil.bytesToUuid(resultSet.getBytes(ENTRANCE_DOMAIN_ID_COLUMN_NAME)));
+          tunnels.add(new NetherTunnel(
+              new CellBox(
+                  new Cell(resultSet.getInt(ENTRANCE_0_X_COLUMN_NAME),
+                      resultSet.getInt(ENTRANCE_0_Y_COLUMN_NAME),
+                      resultSet.getInt(ENTRANCE_0_Z_COLUMN_NAME),
+                      domain),
+                  new Cell(resultSet.getInt(ENTRANCE_1_X_COLUMN_NAME),
+                      resultSet.getInt(ENTRANCE_1_Y_COLUMN_NAME),
+                      resultSet.getInt(ENTRANCE_1_Z_COLUMN_NAME),
+                      domain)),
+              new Cell(resultSet.getInt(EXIT_X_ID_COLUMN_NAME),
+                  resultSet.getInt(EXIT_Y_ID_COLUMN_NAME),
+                  resultSet.getInt(EXIT_Z_ID_COLUMN_NAME),
+                  Journey.get().domainManager().domainIndex(UUIDUtil.bytesToUuid(resultSet.getBytes(EXIT_DOMAIN_ID_COLUMN_NAME))))));
+        }
+        default -> throw new RuntimeException("Unhandled portal type");
       }
     }
     return tunnels;
   }
 
   @Override
-  public void removeTunnels(Cell origin, Cell destination, TunnelType type) {
+  public void removeTunnels(CellBox entrance, Cell exit, TunnelType type) {
     try (Connection connection = getConnectionController().establishConnection()) {
       PreparedStatement statement = connection.prepareStatement(String.format(
           "DELETE FROM %s WHERE %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ? AND %s = ?;",
           NETHER_TUNNEL_TABLE_NAME,
-          "origin_domain_id",
-          "origin_x",
-          "origin_y",
-          "origin_z",
-          "destination_domain_id",
-          "destination_x",
-          "destination_y",
-          "destination_z",
-          "tunnel_type"));
+          ENTRANCE_DOMAIN_ID_COLUMN_NAME,
+          ENTRANCE_0_X_COLUMN_NAME,
+          ENTRANCE_0_Y_COLUMN_NAME,
+          ENTRANCE_0_Z_COLUMN_NAME,
+          ENTRANCE_1_X_COLUMN_NAME,
+          ENTRANCE_1_Y_COLUMN_NAME,
+          ENTRANCE_1_Z_COLUMN_NAME,
+          EXIT_DOMAIN_ID_COLUMN_NAME,
+          EXIT_X_ID_COLUMN_NAME,
+          EXIT_Y_ID_COLUMN_NAME,
+          EXIT_Z_ID_COLUMN_NAME,
+          TUNNEL_TYPE_COLUMN_NAME));
 
-      statement.setBytes(1, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(origin.domain())));
-      statement.setInt(2, origin.blockX());
-      statement.setInt(3, origin.blockY());
-      statement.setInt(4, origin.blockZ());
-      statement.setBytes(5, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(destination.domain())));
-      statement.setInt(6, destination.blockX());
-      statement.setInt(7, destination.blockY());
-      statement.setInt(8, destination.blockZ());
-      statement.setInt(9, type.id());
+      int parameterIndex = 1;
+      statement.setBytes(parameterIndex++, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(entrance.domain())));
+      statement.setInt(parameterIndex++, entrance.min().blockX());
+      statement.setInt(parameterIndex++, entrance.min().blockY());
+      statement.setInt(parameterIndex++, entrance.min().blockZ());
+      statement.setInt(parameterIndex++, entrance.max().blockX());
+      statement.setInt(parameterIndex++, entrance.max().blockY());
+      statement.setInt(parameterIndex++, entrance.max().blockZ());
+      statement.setBytes(parameterIndex++, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(exit.domain())));
+      statement.setInt(parameterIndex++, exit.blockX());
+      statement.setInt(parameterIndex++, exit.blockY());
+      statement.setInt(parameterIndex++, exit.blockZ());
+      statement.setInt(parameterIndex++, type.id());
 
       statement.executeUpdate();
     } catch (SQLException e) {
@@ -218,7 +227,7 @@ public class SqlTunnelDataManager extends SqlManager implements TunnelDataManage
       PreparedStatement statement = connection.prepareStatement(String.format(
           "DELETE FROM %s WHERE %s = ?;",
           NETHER_TUNNEL_TABLE_NAME,
-          "tunnel_type"));
+          TUNNEL_TYPE_COLUMN_NAME));
 
       statement.setInt(1, type.id());
 

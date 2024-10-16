@@ -67,21 +67,26 @@ CREATE INDEX journey_cached_path_modes_path_id_idx ON journey_cached_path_modes 
 -- Journey Tunnel Cache
 
 CREATE TABLE journey_tunnels (
-    origin_domain_id        BINARY(16)  NOT NULL,
-    origin_x                INT         NOT NULL,
-    origin_y                INT         NOT NULL,
-    origin_z                INT         NOT NULL,
-    destination_domain_id   BINARY(16)  NOT NULL,
-    destination_x           INT         NOT NULL,
-    destination_y           INT         NOT NULL,
-    destination_z           INT         NOT NULL,
-    tunnel_type             TINYINT     NOT NULL
+    entrance_domain_id  BINARY(16)  NOT NULL,
+    entrance_0_x        INT         NOT NULL,
+    entrance_0_y        INT         NOT NULL,
+    entrance_0_z        INT         NOT NULL,
+    entrance_1_x        INT         NOT NULL,
+    entrance_1_y        INT         NOT NULL,
+    entrance_1_z        INT         NOT NULL,
+    exit_domain_id      BINARY(16)  NOT NULL,
+    exit_x              INT         NOT NULL,
+    exit_y              INT         NOT NULL,
+    exit_z              INT         NOT NULL,
+    tunnel_type         TINYINT     NOT NULL
 );
-CREATE INDEX journey_tunnels_origin_idx ON journey_tunnels (
-	origin_domain_id, origin_x, origin_y, origin_z
+CREATE INDEX journey_tunnels_entrance_idx on journey_tunnels (
+        entrance_domain_id,
+        entrance_0_x, entrance_0_y, entrance_0_z,
+        entrance_1_x, entrance_1_y, entrance_1_z
 );
-CREATE INDEX journey_tunnels_destination_idx ON journey_tunnels (
-	destination_domain_id, destination_x, destination_y, destination_z
+CREATE INDEX journey_tunnels_exit_idx on journey_tunnels (
+        exit_domain_id, exit_x, exit_y, exit_z
 );
 
 -- Journey Database Version Tracker

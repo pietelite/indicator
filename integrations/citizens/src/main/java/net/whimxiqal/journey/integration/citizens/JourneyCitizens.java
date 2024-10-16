@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.trait.TraitInfo;
 import net.whimxiqal.journey.JourneyApi;
-import net.whimxiqal.journey.JourneyApiProvider;
 import net.whimxiqal.journey.integration.citizens.config.ConfigSettings;
 import net.whimxiqal.journey.navigation.NavigatorFactory;
 import org.bukkit.Bukkit;
@@ -56,7 +55,7 @@ public final class JourneyCitizens extends JavaPlugin {
     }
     ConfigSettings.testLoadAll();
 
-    JourneyApi api = JourneyApiProvider.get();
+    JourneyApi api = JourneyApi.get();
     api.registerScope(getName(), "npc", new CitizensScope());
     api.navigating().registerNavigator(NavigatorFactory.builder(NAME, "npc")
         .permission("journey.navigator.npc")

@@ -36,6 +36,7 @@ import net.whimxiqal.journey.VirtualMap;
 import net.whimxiqal.journey.data.Waypoint;
 import net.whimxiqal.journey.message.Formatter;
 import net.whimxiqal.journey.message.Messages;
+import net.whimxiqal.journey.navigation.PlatformProxy;
 import net.whimxiqal.journey.search.DomainGoalSearchSession;
 import net.whimxiqal.journey.search.InternalScope;
 import net.whimxiqal.journey.search.SearchSession;
@@ -78,7 +79,7 @@ public class ScopeManager {
                 .name(Component.text(p.name()))
                 .description(Messages.GUI_SCOPE_PLAYERS_TO_ENTITY_DESCRIPTION.resolve(Formatter.DULL))
                 .destinations(() -> p.location()
-                    .map(location -> VirtualMap.ofSingleton(p.name(), Destination.builder(location).permission(Permission.PATH_PLAYER_ENTITY.path()).build()))
+                    .map(location -> VirtualMap.ofSingleton(p.name(), Destination.cellBuilder(location).permission(Permission.PATH_PLAYER_ENTITY.path()).build()))
                     .orElse(VirtualMap.empty()))
                 .subScopes(() -> VirtualMap.ofSingleton("waypoints", Scope.builder()
                     .name(Messages.GUI_SCOPE_PLAYERS_WAYPOINTS_TITLE.resolve(NamedTextColor.WHITE, Formatter.ACCENT, false, p.name()))
@@ -94,24 +95,47 @@ public class ScopeManager {
                 .strict()  // to access any player destinations, you must at least scope to the player
                 .build()))))
         .build());
+
     register(Journey.NAME, "world", new InternalScope(Scope.builder()
         .name(Messages.GUI_SCOPE_WORLDS_TITLE.resolve(Formatter.DULL, null, false))
         .build(),
-        p1 -> VirtualMap.empty(),
+        // destinations are "minecraft" type worlds
+        p1 -> {
+          Map<String, PlatformProxy.DomainInfo> minecraftDomains = Journey.get().proxy().platform().domainResourceKeys().get("minecraft");
+          if (minecraftDomains == null) {
+            return VirtualMap.empty();
+          } else {
+            return p1.location().map(cell -> VirtualMap.of(minecraftDomains.entrySet().stream().collect(Collectors.toMap(entry2 -> entry2.getValue().name(),
+                entry2 -> {
+                  SearchSession session = new DomainGoalSearchSession(
+                      p1.uuid(), SearchSession.Caller.PLAYER,
+                      p1, cell, entry2.getValue().id(), false);
+                  session.addPermission(Permission.PATH_WORLD.path());
+                  return session;
+                })))).orElse(VirtualMap.empty());
+          }
+        },
+        // other type worlds are put under separate sub-scopes
         p1 -> VirtualMap.of(Journey.get().proxy().platform().domainResourceKeys()
             .entrySet()
             .stream()
+            .filter(entry2 -> !entry2.getKey().equals("minecraft"))
             .collect(Collectors.toMap(Map.Entry::getKey, entry ->
                 new InternalScope(Scope.builder()
                     .name(Component.text(entry.getKey()))
                     .build(),
                     p2 -> p2.location().map(cell -> VirtualMap.of(entry.getValue().entrySet().stream()
-                        .filter(entry2 -> entry2.getValue() != cell.domain())  // can't request to go to their current domain
-                        .collect(Collectors.toMap(Map.Entry::getKey, entry2 -> {
-                          SearchSession session = new DomainGoalSearchSession(p2.uuid(), SearchSession.Caller.PLAYER, p2, cell, entry2.getValue(), false);
-                          session.addPermission(Permission.PATH_WORLD.path());
-                          return session;
-                        })))).orElseGet(VirtualMap::empty),
+                        .filter(entry2 -> entry2.getValue().id() != cell.domain())  // can't request to go to their current domain
+                        .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            entry2 -> {
+                              SearchSession session = new DomainGoalSearchSession(
+                                  p2.uuid(), SearchSession.Caller.PLAYER,
+                                  p2, cell, entry2.getValue().id(), false);
+                              session.setName(Component.text(entry2.getValue().name()));
+                              session.addPermission(Permission.PATH_WORLD.path());
+                              return session;
+                            })))).orElseGet(VirtualMap::empty),
                     p2 -> VirtualMap.empty()))))));
   }
 

@@ -58,7 +58,7 @@ public final class ScopeUtil {
         .destinations(player -> {
           Map<String, Destination> destinations = new HashMap<>();
           Journey.get().playerManager().getDeathLocation(player.uuid()).ifPresent(location ->
-              destinations.put("death", Destination.builder(location).permission(Permission.PATH_DEATH.path()).build()));
+              destinations.put("death", Destination.cellBuilder(location).permission(Permission.PATH_DEATH.path()).build()));
           return VirtualMap.of(destinations);
         })
         .build(),

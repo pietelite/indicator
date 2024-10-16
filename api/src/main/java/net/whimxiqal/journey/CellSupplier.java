@@ -21,18 +21,22 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package net.whimxiqal.journey.bukkit;
+package net.whimxiqal.journey;
 
-import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
+import org.jetbrains.annotations.Nullable;
 
-public final class JourneyBukkitApiSupplier {
+/**
+ * A nullable supplier of a location.
+ */
+@FunctionalInterface
+public interface CellSupplier {
 
-  private JourneyBukkitApiSupplier() {
-  }
-
-  public static void set(JourneyBukkitApi api) {
-    JourneyBukkitApiProvider.provide(api);
-  }
+  /**
+   * Get the cell.
+   *
+   * @return the cell
+   */
+  @Nullable
+  Cell get();
 
 }

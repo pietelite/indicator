@@ -30,6 +30,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import net.whimxiqal.journey.Cell;
+import net.whimxiqal.journey.CellTarget;
 import net.whimxiqal.journey.Journey;
 import net.whimxiqal.journey.JourneyTestHarness;
 import net.whimxiqal.journey.manager.DistributedWorkManager;
@@ -50,11 +52,12 @@ public class SimpleSearchTests extends JourneyTestHarness {
   private FlagSet flags;
 
   private SearchSession destinationSession(String origin, String destination) {
+    Cell destinationCell = TestPlatformProxy.pois.get(destination);
     return new DestinationGoalSearchSession(new TestJourneyPlayer(PLAYER_UUID),
         TestPlatformProxy.pois.get(origin),
-        TestPlatformProxy.pois.get(destination),
-        false,
-        true);
+        new CellTarget(destinationCell),
+        destinationCell::equals,
+        false, false);
   }
 
   private SearchSession domainSession(String origin, int domainDestination) {
@@ -166,12 +169,14 @@ public class SimpleSearchTests extends JourneyTestHarness {
     AtomicInteger finished = new AtomicInteger(0);
     AtomicInteger failed = new AtomicInteger(0);
 
-    BiFunction<String, String, SearchSession> newSearch = (origin, destination) ->
-        new DestinationGoalSearchSession(new TestJourneyPlayer(UUID.randomUUID()),
-            TestPlatformProxy.pois.get(origin),
-            TestPlatformProxy.pois.get(destination),
-            false,
-            false);
+    BiFunction<String, String, SearchSession> newSearch = (origin, destination) -> {
+      Cell destinationCell = TestPlatformProxy.pois.get(destination);
+      return new DestinationGoalSearchSession(new TestJourneyPlayer(UUID.randomUUID()),
+          TestPlatformProxy.pois.get(origin),
+          new CellTarget(destinationCell),
+          destinationCell::equals,
+          false, false);
+    };
 
     BiConsumer<SearchSession, ResultState> runSearchAsync = (session, expected) -> {
       session.initialize();

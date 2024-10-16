@@ -31,7 +31,8 @@ public enum DataVersion implements Comparable<DataVersion> {
   ERROR(-1),
   V000(0),
   V001(1),
-  V002(2);
+  V002(2),
+  V003(3);
 
   private static final Map<Integer, DataVersion> VERSIONS = new HashMap<>();
 
@@ -76,7 +77,6 @@ public enum DataVersion implements Comparable<DataVersion> {
     }
     return version;
   }
-
 
   public static DataVersion latest() {
     return latestVersion;

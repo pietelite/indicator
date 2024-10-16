@@ -48,7 +48,11 @@ public final class WorldLoader {
   }
 
   public static int domain(int index) {
-    return Journey.get().domainManager().domainIndex(TestPlatformProxy.worlds.get(index).uuid);
+    TestWorld world = TestPlatformProxy.worlds.get(index);
+    if (world == null) {
+      throw new IllegalArgumentException("No world at index " + index + ". Worlds: " + TestPlatformProxy.worlds);
+    }
+    return Journey.get().domainManager().domainIndex(world.uuid);
   }
 
   public static void initWorlds() {
@@ -58,6 +62,7 @@ public final class WorldLoader {
       String resource = worldResources[resourceIdx];
       UUID uuid = UUID.randomUUID();
       int domain = Journey.get().domainManager().domainIndex(uuid);
+      System.out.println("Getting domain for uuid: " + uuid + ": id is " + domain);
       TestWorld world = new TestWorld();
       world.name = resource;
 

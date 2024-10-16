@@ -81,7 +81,8 @@ public class SqlPathRecordManager
     }
 
     // Delete any previous record if it has the same origin/destination/world and is slower
-    List<PathTrialRecord> oldRecords = getRecords(trial.getOrigin(), trial.getDestination());
+    // TODO [caching]
+    List<PathTrialRecord> oldRecords = null; // getRecords(trial.getOrigin(), trial.getDestination());
     for (PathTrialRecord oldRecord : oldRecords) {
       try (Connection connection = getConnectionController().establishConnection()) {
         if (oldRecord.pathCost() <= path.getCost()) {
@@ -124,9 +125,10 @@ public class SqlPathRecordManager
       statement.setInt(4, trial.getOrigin().blockX());
       statement.setInt(5, trial.getOrigin().blockY());
       statement.setInt(6, trial.getOrigin().blockZ());
-      statement.setInt(7, trial.getDestination().blockX());
-      statement.setInt(8, trial.getDestination().blockY());
-      statement.setInt(9, trial.getDestination().blockZ());
+      // TODO [caching]
+//      statement.setInt(7, trial.getDestination().blockX());
+//      statement.setInt(8, trial.getDestination().blockY());
+//      statement.setInt(9, trial.getDestination().blockZ());
       statement.setBytes(10, UUIDUtil.uuidToBytes(Journey.get().domainManager().domainId(trial.getDomain())));
 
       statement.execute();

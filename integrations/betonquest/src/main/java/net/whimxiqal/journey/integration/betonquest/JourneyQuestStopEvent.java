@@ -23,7 +23,7 @@
 
 package net.whimxiqal.journey.integration.betonquest;
 
-import net.whimxiqal.journey.JourneyApiProvider;
+import net.whimxiqal.journey.JourneyApi;
 import org.betonquest.betonquest.Instruction;
 import org.betonquest.betonquest.api.profiles.Profile;
 import org.betonquest.betonquest.api.quest.event.Event;
@@ -37,6 +37,6 @@ public class JourneyQuestStopEvent implements Event {
 
   @Override
   public void execute(Profile profile) {
-    JourneyApiProvider.get().navigating().stopNavigation(profile.getPlayerUUID());
+    JourneyApi.get().navigating().stopNavigation(profile.getPlayerUUID());
   }
 }

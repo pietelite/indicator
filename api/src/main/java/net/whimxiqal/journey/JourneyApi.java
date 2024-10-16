@@ -23,15 +23,26 @@
 
 package net.whimxiqal.journey;
 
+import java.util.ServiceLoader;
 import net.whimxiqal.journey.navigation.NavigationApi;
 import net.whimxiqal.journey.search.SearchApi;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * The central interface for all external-facing endpoints for Journey.
  *
- * <p><b>Note: unless otherwise specified, all API calls must be done on the main server thread.</b>
+ * <p><b>Note: Methods annotated with {@link Synchronous} must be accessed on the main server thread.</b>
  */
 public interface JourneyApi {
+
+  /**
+   * Get the API instance.
+   *
+   * @return the Journey API
+   */
+  static JourneyApi get() {
+    return Provider.INSTANCE;
+  }
 
   /**
    * Register a {@link Scope} to Journey. {@link Scope}s will provide players with the information about
@@ -65,5 +76,17 @@ public interface JourneyApi {
    * @return the navigation API
    */
   NavigationApi navigating();
+
+  @ApiStatus.Internal
+  final class Provider {
+
+    private static final JourneyApi INSTANCE = ServiceLoader.load(
+            JourneyApi.class,
+            JourneyApi.class.getClassLoader())
+        .findFirst().orElseThrow();
+
+    private Provider() {
+    }
+  }
 
 }

@@ -42,7 +42,7 @@ shadowJar {
         include(dependency('net.whimxiqal.mantle:.*'))
         include(dependency('org.antlr:antlr4-runtime'))
         include(dependency('com.vmware.antlr4-c3:.*'))
-        include(dependency('net.kyori:adventure.*'))
+        include(dependency('net.kyori:adventure-nbt'))
         include(dependency('net.kyori:adventure-platform.*'))
         include(dependency('net.kyori:adventure-text-serializer-legacy.*'))
         include(dependency('net.kyori:adventure-text-serializer-gson.*'))
@@ -57,6 +57,7 @@ shadowJar {
     relocate 'org.antlr', 'net.whimxiqal.journey.libs.antlr'
     relocate 'com.vmware.antlr4c3', 'net.whimxiqal.journey.libs.c3'
     relocate 'org.stringtemplate', 'net.whimxiqal.journey.libs.stringtemplate'
+    relocate 'net.kyori.adventure.nbt', 'net.whimxiqal.journey.libs.adventure.nbt'
     relocate 'net.kyori.adventure.platform', 'net.whimxiqal.journey.libs.adventure.platform'
     relocate 'net.kyori.adventure.text.serializer.legacy', 'net.whimxiqal.journey.libs.adventure.legacy'
     relocate 'net.kyori.adventure.text.serializer.gson', 'net.whimxiqal.journey.libs.adventure.gson'

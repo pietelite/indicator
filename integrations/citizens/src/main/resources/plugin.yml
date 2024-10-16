@@ -1,7 +1,7 @@
 name: JourneyCitizens
 version: '${version}'
 main: net.whimxiqal.journey.integration.citizens.JourneyCitizens
-api-version: 1.17
+api-version: 1.21
 depend: [ Journey, Citizens ]
 authors: [ whimxiqal ]
 description: Integrates Journey with Citizens

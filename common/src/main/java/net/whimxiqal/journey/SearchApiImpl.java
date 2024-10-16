@@ -41,7 +41,6 @@ import net.whimxiqal.journey.search.flag.Flags;
 
 public class SearchApiImpl implements SearchApi {
 
-  @Override
   public CompletableFuture<SearchResult> runDestinationSearch(JourneyAgent agent, Cell origin, Cell destination, SearchFlag<?>... flags) {
     CompletableFuture<SearchResult> future = new CompletableFuture<>();
     if (Journey.get().proxy().schedulingManager().isMainThread()) {
@@ -57,8 +56,7 @@ public class SearchApiImpl implements SearchApi {
       throw new IllegalThreadStateException();
     }
     DestinationGoalSearchSession session = new DestinationGoalSearchSession(null, SearchSession.Caller.PLUGIN, agent,
-        origin, destination,
-        false, false);
+        origin, () -> new CellTarget(destination), false, false);
     session.addFlags(FlagSet.from(flags));
     session.initialize();  // sets the modes and tunnels (must be run on main thread)
     session.search().thenAccept(result -> {
@@ -120,8 +118,7 @@ public class SearchApiImpl implements SearchApi {
     }
 
     DestinationGoalSearchSession session = new DestinationGoalSearchSession(null, SearchSession.Caller.PLUGIN, player.get(),
-        playerLocation.get(), destination,
-        false, false);
+        playerLocation.get(), new CellTarget(destination), destination::equals, false, false);
     session.addFlags(FlagSet.from(flags));
     session.initialize();  // sets the modes and tunnels (must be run on main thread)
     session.search().thenAccept(result -> {

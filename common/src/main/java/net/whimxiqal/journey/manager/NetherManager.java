@@ -26,7 +26,6 @@ package net.whimxiqal.journey.manager;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,6 +37,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import net.whimxiqal.journey.Cell;
+import net.whimxiqal.journey.CellBox;
 import net.whimxiqal.journey.Journey;
 import net.whimxiqal.journey.data.TunnelType;
 import net.whimxiqal.journey.navigation.NetherTunnel;
@@ -47,14 +47,14 @@ import net.whimxiqal.journey.navigation.NetherTunnel;
  */
 public final class NetherManager {
 
-  private final Map<Cell, Cell> portalConnections = new ConcurrentHashMap<>();
+  private final Map<CellBox, Cell> portalConnections = new ConcurrentHashMap<>();
 
   public void initialize() {
     // Calls to the db directly
     Journey.get().proxy().dataManager()
         .netherPortalManager()
         .getAllTunnels(TunnelType.NETHER)
-        .forEach(tunnel -> portalConnections.put(tunnel.origin(), tunnel.destination()));
+        .forEach(tunnel -> portalConnections.put(tunnel.box(), tunnel.exit()));
     Journey.get().tunnelManager().register(player -> Journey.get().netherManager().makeTunnels());
   }
 
@@ -73,14 +73,14 @@ public final class NetherManager {
         linksVerified.add(tunnel);
       } else {
         // put new nether tunnel in list to send to async thread
-        tunnelsToRemove.add(new NetherTunnel(tunnel.origin(), tunnel.destination()));
+        tunnelsToRemove.add(new NetherTunnel(tunnel.box(), tunnel.exit()));
       }
     }
     if (!tunnelsToRemove.isEmpty()) {
       Journey.get().proxy().schedulingManager().schedule(() -> {
         for (NetherTunnel tunnel : tunnelsToRemove) {
-          portalConnections.remove(tunnel.origin(), tunnel.destination());
-          Journey.get().proxy().dataManager().netherPortalManager().removeTunnels(tunnel.origin(), tunnel.destination(), TunnelType.NETHER);
+          portalConnections.remove(tunnel.box(), tunnel.exit());
+          Journey.get().proxy().dataManager().netherPortalManager().removeTunnels(tunnel.box(), tunnel.exit(), TunnelType.NETHER);
         }
       }, true);
     }
@@ -130,42 +130,36 @@ public final class NetherManager {
       Journey.get().proxy().schedulingManager().schedule(() -> {
         // Check if we have any portals with this origin and destination already. If so, and the one found here is
         //  different, we have to remove the old one(s)
-        List<Cell> linkedOrigins = new LinkedList<>();
-        for (Cell originCell : originGroup.blocks()) {
-          Cell portalDestination = portalConnections.get(originCell);
-          if (portalDestination == null) {
-            // no saved portal with the given origin, skip
-            continue;
-          }
-          for (Cell destinationCell : destinationGroup.get().blocks()) {
-            if (portalDestination.equals(destinationCell)) {
-              return;  // We already have this portal link set up, no need to continue
-            }
-          }
-          // We have a new portal, mark this one for deletion
-          linkedOrigins.add(originCell);
-        }
-        /* We don't have this portal link set up yet */
 
-        // Remove any connections with this origin (the portal link changed)
-        for (Cell oldLinkedOrigin : linkedOrigins) {
-          Cell removed = portalConnections.remove(oldLinkedOrigin);
-          if (removed != null) {
-            Journey.get().proxy().dataManager()
-                .netherPortalManager()
-                .removeTunnelsWithOrigin(oldLinkedOrigin, TunnelType.NETHER);
-            Journey.logger().debug("[Nether Manager] Removed nether portal tunnel: " + oldLinkedOrigin + " -> " + portalConnections.get(removed));
+        // TODO pieter: we have to somehow store portals based on the entire portal region
+        //  We can do this probably by mapping from min-block to both max-block and destination min/max block of portal
+        //  So then we only really need to check the min/max of the candidate originGroup, which is nice
+        //  Also, I don't think a concurrent hashmap for the portalConnections is sufficient handling for multi-threading.
+        //  The portal connections can change within a single execution of this scheduled task, so we should probably
+        //  lock the whole map while we are doing these checks. Idk though, more analysis here is needed
+        CellBox tunnelEntrance = originGroup.getBox();
+        Cell tunnelExit = destinationGroup.get().tunnelLocation();
+        Cell existingExit = portalConnections.get(tunnelEntrance);
+        if (existingExit != null) {
+          if (existingExit.equals(tunnelExit)) {
+            // We already have the correct portal tunnel, no need to continue
+            return;
           }
+          // we have the wrong portal tunnel
+          portalConnections.remove(tunnelEntrance);
+          Journey.get().proxy().dataManager()
+              .netherPortalManager()
+              .removeTunnelsWithOrigin(tunnelEntrance, TunnelType.NETHER);
+          Journey.logger().debug("[Nether Manager] Removed nether portal tunnel: " + tunnelEntrance + " -> " + existingExit);
         }
 
         // Add the portal
-        Cell previous = portalConnections.put(originGroup.tunnelLocation(), destinationGroup.get().tunnelLocation());
-        Journey.get().proxy().dataManager().netherPortalManager().addTunnel(originGroup.tunnelLocation(),
+        Cell previous = portalConnections.put(tunnelEntrance, tunnelExit);
+        Journey.get().proxy().dataManager().netherPortalManager().addTunnel(tunnelEntrance,
             destinationGroup.get().tunnelLocation(),
-            NetherTunnel.COST,
             TunnelType.NETHER);
         if (previous == null) {
-          Journey.logger().debug("[Nether Manager] Added nether tunnel: " + originGroup.tunnelLocation() + " -> " + destinationGroup.get().tunnelLocation().toString());
+          Journey.logger().debug("[Nether Manager] Added nether tunnel: " + tunnelEntrance + " -> " + tunnelExit);
         }
       }, true);
     }, false, 20);
@@ -245,17 +239,6 @@ public final class NetherManager {
   }
 
   /**
-   * Locate all portals near the given cell within the given radius.
-   *
-   * @param cell   the central cell
-   * @param radius the radius around the cell
-   * @return the portals
-   */
-  public Collection<PortalGroup> locateAll(Cell cell, int radius) {
-    return locateAll(cell, radius, cell.blockY() - radius, cell.blockY() + radius);
-  }
-
-  /**
    * Gets the Portal blocks that is part of the Nether portal.
    * Will return null if there are no portals or the portal that has been found
    * has too few portal blocks (<6).
@@ -291,10 +274,16 @@ public final class NetherManager {
    */
   public static class PortalGroup {
     private final Set<Cell> portal = new HashSet<>();
-    private final HashMap<Integer, Set<Cell>> blockY = new HashMap<>();
     private final int domain;
     private Cell teleportTo;
     private int bottom = Integer.MAX_VALUE;
+    private int minX = Integer.MAX_VALUE;
+    private int minY = Integer.MAX_VALUE;
+    private int minZ = Integer.MAX_VALUE;
+    private int maxX = Integer.MIN_VALUE;
+    private int maxY = Integer.MIN_VALUE;
+    private int maxZ = Integer.MIN_VALUE;
+    private CellBox box;
 
     /**
      * A group of Portal block for a Nether portal.
@@ -322,14 +311,19 @@ public final class NetherManager {
       if (added) {
         int y = cell.blockY();
         if (y < bottom) {
-          //The bottom of the Nether portal
+          // The bottom of the Nether portal
           bottom = cell.blockY();
         }
-        //Put the Location in a Map sorted by Y value.
-        Set<Cell> set = blockY.computeIfAbsent(y, k -> new HashSet<>());
-        set.add(cell);
-        //Reset the teleport cell and distance squared since a new block was added.
+        // Reset the teleport cell since a new block was added.
         teleportTo = null;
+        box = null;
+
+        minX = Math.min(minX, cell.blockX());
+        minY = Math.min(minY, cell.blockY());
+        minZ = Math.min(minZ, cell.blockZ());
+        maxX = Math.max(maxX, cell.blockX());
+        maxY = Math.max(maxY, cell.blockY());
+        maxZ = Math.max(maxZ, cell.blockZ());
       }
       return added;
     }
@@ -366,13 +360,8 @@ public final class NetherManager {
         return null;
       }
 
-      Set<Cell> bottomY = blockY.get(bottom);
-      int minX = Collections.min(bottomY, Comparator.comparingInt(Cell::blockX)).blockX();
-      int maxX = Collections.max(bottomY, Comparator.comparingInt(Cell::blockX)).blockX();
-      int minZ = Collections.min(bottomY, Comparator.comparingInt(Cell::blockZ)).blockZ();
-      int maxZ = Collections.max(bottomY, Comparator.comparingInt(Cell::blockZ)).blockZ();
-
-      return new Cell((maxX + minX) / 2, bottom, (maxZ + minZ) / 2, domain);
+      teleportTo = new Cell((maxX + minX) / 2, bottom, (maxZ + minZ) / 2, domain);
+      return teleportTo;
     }
 
     @Override
@@ -386,6 +375,60 @@ public final class NetherManager {
         return portal.equals(pg.portal);
       }
       return portal.equals(o);
+    }
+
+    public CellBox getBox() {
+      if (box != null) {
+        return box;
+      }
+
+      // find the largest contiguous box of nether portal blocks within cell set
+      Cell minCell = null;
+      int maxBoxX = Integer.MIN_VALUE;
+      int maxBoxY = Integer.MIN_VALUE;
+      int maxBoxZ = Integer.MIN_VALUE;
+      for (int x = minX; x <= maxX; x++) {
+        for (int y = minY; y <= maxY; y++) {
+          for (int z = minZ; z <= maxZ; z++) {
+            Cell cell = new Cell(x, y, z, domain);
+            if (Journey.get().proxy().platform().toBlock(cell).isNetherPortal()) {
+              minCell = cell;
+              break;
+            }
+          }
+          if (minCell != null) {
+            break;
+          }
+        }
+        if (minCell != null) {
+          break;
+        }
+      }
+
+      if (minCell == null) {
+        throw new IllegalStateException("Portal group has no nether portal blocks");
+      }
+
+      Cell maxCell = minCell;
+      boolean done = false;
+      for (int x = minCell.blockX(); x <= maxX; x++) {
+        for (int y = minCell.blockY(); y <= maxY; y++) {
+          for (int z = minCell.blockZ(); z <= maxZ; z++) {
+            maxCell = new Cell(x, y, z, domain);
+            if (!Journey.get().proxy().platform().toBlock(maxCell).isNetherPortal()) {
+              done = true;
+              break;
+            }
+          }
+          if (done) {
+            break;
+          }
+        }
+        if (done) {
+          break;
+        }
+      }
+      return new CellBox(minCell, maxCell);
     }
 
   }

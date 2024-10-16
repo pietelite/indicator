@@ -1,0 +1,7 @@
+name: JourneyWorldGuard
+version: '${version}'
+main: net.whimxiqal.journey.integration.worldguard.JourneyWorldGuard
+api-version: 1.21
+depend: [ Journey, WorldGuard ]
+authors: [ whimxiqal ]
+description: Integrates Journey with WorldGuard

@@ -68,9 +68,6 @@ public final class JourneyBukkit extends JavaPlugin {
       getLogger().info("Journey data folder created");
     }
 
-    // API
-    JourneyBukkitApiSupplier.set(new JourneyBukkitApiImpl());
-
     Journey.create();
     // Set up Journey Proxy
     ProxyImpl proxy = new ProxyImpl();
@@ -82,7 +79,7 @@ public final class JourneyBukkit extends JavaPlugin {
     proxy.messagesConfigPath(this.getDataFolder().toPath().resolve("messages.yml"));
     proxy.schedulingManager(new BukkitSchedulingManager());
     proxy.platform(new BukkitPlatformProxy());
-    proxy.version(getDescription().getVersion());
+    proxy.version(getPluginMeta().getVersion());
 
     // Initialize common Journey (after proxy is set up)
     boolean failed = false;
@@ -97,7 +94,7 @@ public final class JourneyBukkit extends JavaPlugin {
 
     if (failed) {
       Journey.logger().flush();
-      setEnabled(false);
+      Bukkit.getPluginManager().disablePlugin(this);
       return;
     }
 
@@ -111,7 +108,7 @@ public final class JourneyBukkit extends JavaPlugin {
     Bukkit.getPluginManager().registerEvents(new PluginDisableListener(), this);
 
     if (Settings.EXTRA_CHECK_LATEST_VERSION_ON_STARTUP.getValue()) {
-      Request.evaluateVersionAge("paper", getDescription().getVersion());
+      Request.evaluateVersionAge("paper", getPluginMeta().getVersion());
     }
     if (Settings.EXTRA_FIND_INTEGRATIONS_ON_STARTUP.getValue()) {
       Request.checkForIntegrationPlugins("paper",

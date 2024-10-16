@@ -23,39 +23,25 @@
 
 package net.whimxiqal.journey;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
-class TunnelImpl implements Tunnel {
+public abstract class TunnelImpl implements Tunnel {
 
-  private final Cell origin;
-  private final Cell destination;
+  private final Cell exit;
   private final int cost;
   private final Runnable prompt;
-  private final Predicate<Cell> testCompletion;
   private final String permission;
 
-  TunnelImpl(Cell origin, Cell destination, int cost, Runnable prompt,
-             Predicate<Cell> testCompletion, String permission) {
-    this.origin = origin;
-    this.destination = destination;
+  public TunnelImpl(Cell exit, int cost, Runnable prompt, String permission) {
+    this.exit = exit;
     this.cost = cost;
     this.prompt = prompt;
-    this.testCompletion = testCompletion;
     this.permission = permission;
   }
 
   @Override
-  public Cell origin() {
-    return origin;
-  }
-
-  @Override
-  public Cell destination() {
-    return destination;
+  public Cell exit() {
+    return exit;
   }
 
   @Override
@@ -73,23 +59,15 @@ class TunnelImpl implements Tunnel {
   }
 
   @Override
-  public boolean testCompletion(Cell location) {
-    if (testCompletion == null) {
-      return Tunnel.super.testCompletion(location);
-    }
-    return testCompletion.test(location);
-  }
-
-  @Override
   public Optional<String> permission() {
     return Optional.ofNullable(permission);
   }
 
   @Override
   public String toString() {
-    return "TunnelImpl{" + origin + " -> "
-        + destination + ", cost="
+    return "TunnelImpl{cost="
         + cost + ", permission="
         + permission + '}';
   }
+
 }

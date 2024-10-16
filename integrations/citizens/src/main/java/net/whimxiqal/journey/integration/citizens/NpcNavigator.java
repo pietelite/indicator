@@ -36,7 +36,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.whimxiqal.journey.JourneyAgent;
 import net.whimxiqal.journey.bukkit.JourneyBukkitApi;
-import net.whimxiqal.journey.bukkit.JourneyBukkitApiProvider;
 import net.whimxiqal.journey.integration.citizens.config.ConfigSettings;
 import net.whimxiqal.journey.navigation.NavigationProgress;
 import net.whimxiqal.journey.navigation.Navigator;
@@ -140,7 +139,7 @@ public class NpcNavigator implements Navigator {
 
   @Override
   public boolean start() {
-    JourneyBukkitApi journeyBukkitApi = JourneyBukkitApiProvider.get();
+    JourneyBukkitApi journeyBukkitApi = JourneyBukkitApi.get();
     if (progress.steps().isEmpty()) {
       return true;
     }
